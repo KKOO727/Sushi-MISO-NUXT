@@ -1,0 +1,431 @@
+<template>
+	<div>
+		<div v-if="!loading" class="row mt-4 pt-3 justify-content-center">
+			<div class="col-12 col-lg-6">
+				<about-card
+					:info="about"
+					:market-info="marketInfo"
+					:token-info="tokenInfo"
+					:point-list="marketInfo.hasPointList"
+					:user="userInfo"
+					:price="marketInfo.currentPrice"
+					:type="status.type"
+					:status="status"
+				/>
+			</div>
+			<div class="col-12 col-lg-6 mt-4 pt-3 pt-lg-0 mt-lg-0">
+				<live-status
+					:status="status"
+					:market-info="marketInfo"
+					:token-info="tokenInfo"
+					:user-info="userInfo"
+					@updateUserInfo="updateUserInfo"
+					@auctionFinalized="finalizeAuction"
+				/>
+			</div>
+			<br />
+			<div class="col-12 col-lg-12 mt-4 pt-3">
+				<commitments
+					:commitments="listCommitments"
+					:short-currency="marketInfo.paymentCurrency.symbol"
+					:total-tokens="marketInfo.totalTokens"
+					:total-tokens-committed="marketInfo.totalTokensCommitted"
+					:current-price="marketInfo.currentPrice"
+					:minimum-price="marketInfo.minimumPrice"
+				/>
+			</div>
+		</div>
+		<loader v-else width="80" height="80" y="250" />
+	</div>
+</template>
+
+<script>
+import { mapGetters, mapActions } from 'vuex'
+import { getContractInstance as misoHelperContract } from '@/services/web3/misoHelper'
+import {
+	getContractInstance as dutchAuctionContract,
+	clearingPrice,
+} from '@/services/web3/auctions/dutch'
+import { getContractInstance as crowdsaleContract } from '@/services/web3/auctions/crowdsale'
+import { getContractInstance as batchAuctionContract } from '@/services/web3/auctions/batch'
+import { makeBatchCall } from '@/services/web3/base'
+import { toDecimals, toPrecision, to18Decimals } from '@/util/index'
+import AboutCard from '@/components/Miso/Auctions/AuctionInfo/AboutCard'
+import LiveStatus from '@/components/Miso/Auctions/AuctionInfo/LiveStatus'
+import Commitments from '@/components/Miso/Auctions/Commitments'
+
+const TOPIC_ADDED_COMMITMENT =
+	'0x077511a636ba1f10551cc7b89c13ff66a6ac9344e8a917527817a9690b15af7a'
+
+export default {
+	name: 'AuctionInfo',
+	components: {
+		LiveStatus,
+		AboutCard,
+		Commitments,
+	},
+	data() {
+		return {
+			auctionAddress: this.$route.params.address,
+			// can be Object or Array
+			about: {
+				icons: {
+					social: {},
+					ingredient: [
+						{
+							icon: 'liquidity-1',
+							text: 'Pool Liquidity',
+						},
+						{
+							icon: 'mintable-2',
+							text: 'Mintable',
+						},
+						{
+							icon: 'crowdsale',
+							text: 'Crowdsale',
+						},
+					],
+				},
+				recipe: 'Classic Miso',
+			},
+			status: {
+				date: '',
+				participants: 0,
+				finished: false,
+				auctionSuccessful: false,
+			},
+			marketInfo: {
+				startTime: 0,
+				endTime: 0,
+				currentPrice: 0,
+				totalTokensCommitted: 0,
+				paymentCurrency: {
+					addr: null,
+					name: '',
+					symbol: '',
+					decimals: 0,
+				},
+				hasPointList: false,
+				totalTokens: 0,
+				commitmentsTotal: 0,
+				finalized: 0,
+			},
+			tokenInfo: {
+				address: '',
+				name: '',
+				symbol: '',
+			},
+			userInfo: {
+				commitments: 0,
+				tokensClaimable: 0,
+				claimed: 0,
+				isAdmin: 0,
+			},
+			contractInstance: null,
+			loading: true,
+			subscription: null,
+			aboutStatus: {},
+		}
+	},
+	computed: {
+		...mapGetters({
+			coinbase: 'ethereum/coinbase',
+			commitmentsTotal: 'commitments/commitmentsTotal',
+			listCommitments: 'commitments/list',
+		}),
+	},
+	watch: {
+		commitmentsTotal(newValue) {
+			this.marketInfo.commitmentsTotal = toPrecision(newValue, 3)
+			if (this.status.type === 'dutch') {
+				this.updateDutchData()
+			} else if (this.status.type === 'crowdsale') {
+				this.updateCrowdsaleData()
+			} else if (this.status.type === 'batch') {
+				this.updateBatchData()
+			}
+		},
+	},
+	async mounted() {
+		await this.getTemplateId()
+		let type
+		// let finishAuction
+		switch (parseInt(this.marketTemplateId)) {
+			case 1:
+				type = 'crowdsale'
+				this.contractInstance = crowdsaleContract(this.auctionAddress)
+				await this.setCrowdsaleData()
+				// finishAuction = this.marketInfo.totalTokensCommitted
+				break
+			case 2:
+				type = 'dutch'
+				this.contractInstance = dutchAuctionContract(this.auctionAddress)
+				await this.setDutchAuctionData()
+				break
+			case 3:
+				type = 'batch'
+				this.contractInstance = batchAuctionContract(this.auctionAddress)
+				await this.setBatchData()
+				break
+			case 4:
+				type = 'hyperbolic'
+				break
+			default:
+				break
+		}
+		const currentTimestamp = Date.parse(new Date()) / 1000
+		let auction
+		if (this.marketInfo.startTime > currentTimestamp) {
+			auction = 'upcoming'
+			this.status.date = new Date(this.marketInfo.startTime * 1000)
+		} else if (currentTimestamp < this.marketInfo.endTime) {
+			auction = 'live'
+			this.status.date = new Date(this.marketInfo.endTime * 1000)
+		} else {
+			auction = 'finished'
+		}
+		Object.assign(this.status, { type, auction })
+		if (this.coinbase) {
+			await this.updateUserInfo()
+		}
+		await this.getPastCommitments()
+		this.subscribeToNewCommitments()
+
+		// Documents
+		const methods = [{ methodName: 'getDocuments', args: [this.auctionAddress] }]
+		const [documents] = await makeBatchCall(misoHelperContract(), methods)
+
+		documents.forEach((document) => {
+			const name = document['0']
+			const data = document['1']
+			if (name && data && data.length > 0) {
+				switch (name) {
+					case 'website':
+					case 'icon':
+					case 'description':
+						this.about[name] = data
+						break
+					default:
+						this.about.icons.social[name] = data
+				}
+			}
+		})
+
+		this.loading = false
+	},
+	beforeDestroy() {
+		this.subscription.unsubscribe()
+		this.resetCommitmentsState()
+	},
+	methods: {
+		...mapActions({
+			setCommitments: 'commitments/setCommitments',
+			addCommitment: 'commitments/addCommitment',
+			resetCommitmentsState: 'commitments/resetCommitmentsState',
+		}),
+		async setDutchAuctionData() {
+			const methods = [
+				{ methodName: 'getDutchAuctionInfo', args: [this.auctionAddress] },
+			]
+			const [data] = await makeBatchCall(misoHelperContract(), methods)
+			const tokenInfo = data.tokenInfo
+			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			this.setTokenInfo(tokenInfo)
+			this.marketInfo.startTime = data.startTime
+			this.marketInfo.endTime = data.endTime
+			this.marketInfo.startPrice = toDecimals(data.startPrice)
+			this.marketInfo.minimumPrice = toDecimals(data.minimumPrice)
+			this.marketInfo.finalized = data.finalized
+			this.marketInfo.commitmentsTotal = toPrecision(
+				toDecimals(data.commitmentsTotal),
+				3
+			)
+
+			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
+
+			this.status.auctionSuccessful = data.auctionSuccessful
+			const currentTimestamp = Date.parse(new Date()) / 1000
+			if (data.startTime > currentTimestamp) {
+				this.status.date = new Date(data.startTime * 1000)
+			} else {
+				this.status.date = new Date(data.endTime * 1000)
+			}
+			this.updateDutchData()
+		},
+
+		async setCrowdsaleData() {
+			const methods = [
+				{ methodName: 'getCrowdsaleInfo', args: [this.auctionAddress] },
+			]
+			const [data] = await makeBatchCall(misoHelperContract(), methods)
+			const tokenInfo = data.tokenInfo
+			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			this.setTokenInfo(tokenInfo)
+			this.marketInfo.startTime = data.startTime
+			this.marketInfo.endTime = data.endTime
+			this.marketInfo.rate = toDecimals(data.rate)
+			this.marketInfo.goal = toDecimals(data.goal)
+			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
+			// this.marketInfo.finalized = false
+			this.marketInfo.finalized = data.finalized
+			this.marketInfo.commitmentsTotal = toPrecision(
+				toDecimals(data.commitmentsTotal),
+				2
+			)
+
+			this.status.auctionSuccessful = data.auctionSuccessful
+			this.status.totalTokens = toDecimals(data.totalTokens)
+			this.marketInfo.currentPrice = toPrecision(1 / this.marketInfo.rate, 2)
+			this.updateCrowdsaleData()
+		},
+
+		async setBatchData() {
+			const methods = [
+				{ methodName: 'getBatchAuctionInfo', args: [this.auctionAddress] },
+			]
+			const [data] = await makeBatchCall(misoHelperContract(), methods)
+			const tokenInfo = data.tokenInfo
+			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			this.setTokenInfo(tokenInfo)
+			this.marketInfo.startTime = data.startTime
+			this.marketInfo.endTime = data.endTime
+			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
+			this.marketInfo.finalized = data.finalized
+			this.marketInfo.commitmentsTotal = toPrecision(
+				toDecimals(data.commitmentsTotal),
+				2
+			)
+			this.marketInfo.minimumCommitmentAmount = toDecimals(
+				data.minimumCommitmentAmount
+			)
+
+			this.status.auctionSuccessful = data.auctionSuccessful
+			this.status.totalTokens = toDecimals(data.totalTokens)
+			this.marketInfo.currentPrice = toPrecision(
+				this.marketInfo.commitmentsTotal / this.status.totalTokens,
+				2
+			)
+		},
+
+		updateDutchData() {
+			const marketInfo = {
+				currentTimestamp: Date.parse(new Date()) / 1000,
+				startTime: this.marketInfo.startTime,
+				endTime: this.marketInfo.endTime,
+				startPrice: to18Decimals(this.marketInfo.startPrice),
+				minimumPrice: to18Decimals(this.marketInfo.minimumPrice),
+				totalTokens: to18Decimals(this.marketInfo.totalTokens),
+				commitmentsTotal: to18Decimals(this.marketInfo.commitmentsTotal),
+			}
+			const price = clearingPrice(marketInfo)
+			this.marketInfo.currentPrice = toPrecision(toDecimals(price), 3)
+			const tokensCommitted =
+				this.marketInfo.commitmentsTotal / this.marketInfo.currentPrice
+			this.marketInfo.totalTokensCommitted = toPrecision(tokensCommitted, 3)
+		},
+
+		updateCrowdsaleData() {
+			const tokensCommitted = this.marketInfo.commitmentsTotal * this.marketInfo.rate
+			this.marketInfo.totalTokensCommitted = toPrecision(tokensCommitted, 3)
+		},
+
+		updateBatchData() {
+			const price = this.marketInfo.commitmentsTotal / this.marketInfo.totalTokens
+			this.marketInfo.currentPrice = toPrecision(price, 3)
+		},
+
+		async updateUserInfo() {
+			const methods = [
+				{
+					methodName: 'getUserMarketInfo',
+					args: [this.auctionAddress, this.coinbase],
+				},
+			]
+
+			const [userInfo] = await makeBatchCall(misoHelperContract(), methods)
+
+			this.userInfo.commitments = userInfo.commitments
+			this.userInfo.tokensClaimable = userInfo.tokensClaimable
+			this.userInfo.claimed = userInfo.claimed
+			this.userInfo.isAdmin = userInfo.isAdmin
+		},
+
+		async getTemplateId() {
+			const methods = [{ methodName: 'marketTemplate' }]
+			const [marketTemplate] = await makeBatchCall(
+				dutchAuctionContract(this.auctionAddress),
+				methods
+			)
+			this.marketTemplateId = marketTemplate
+		},
+
+		finalizeAuction() {
+			this.marketInfo.finalized = true
+		},
+
+		setTokenInfo(tokenInfo) {
+			this.tokenInfo = tokenInfo
+		},
+
+		subscribeToNewCommitments() {
+			this.subscription = web3socket.eth
+				.subscribe(
+					'logs',
+					{
+						address: this.auctionAddress,
+						topics: [TOPIC_ADDED_COMMITMENT],
+					},
+					(error, result) => {
+						if (!error) {
+							const decodedData = web3.eth.abi.decodeParameters(
+								['address', 'uint256'],
+								result.data
+							)
+							this.addCommitment({
+								txHash: result.transactionHash,
+								timestamp: result.blockNumber,
+								address: decodedData[0],
+								amount: toDecimals(decodedData[1]),
+							})
+						}
+					}
+				)
+				.on('connected', function (subscriptionId) {
+					console.log('subscriptionId:', subscriptionId)
+				})
+				.on('data', function (log) {})
+				.on('changed', function (log) {
+					console.log('changed:', log)
+				})
+		},
+		async getPastCommitments() {
+			const commitments = []
+			const logs = await web3.eth.getPastLogs({
+				fromBlock: 0,
+				toBlock: 'latest',
+				address: this.auctionAddress,
+				topics: [TOPIC_ADDED_COMMITMENT],
+			})
+			logs.forEach((log) => {
+				const decodedData = web3.eth.abi.decodeParameters(
+					['address', 'uint256'],
+					log.data
+				)
+				commitments.push({
+					txHash: log.transactionHash,
+					timestamp: log.blockNumber,
+					address: decodedData[0],
+					amount: toDecimals(decodedData[1]),
+				})
+			})
+
+			this.setCommitments(commitments)
+		},
+	},
+}
+</script>
+
+<style lang="scss" scoped></style>
