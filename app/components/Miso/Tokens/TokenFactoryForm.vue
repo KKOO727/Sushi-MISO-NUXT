@@ -49,7 +49,7 @@
 															:color="computedIconColor"
 														/>
 														<base-radio
-															v-model="tokenModel.templateId"
+															v-model="tokenModel.templateType"
 															:name="token.name"
 															class="mb-3 text-capitalize"
 														>
@@ -86,7 +86,7 @@
 									</div>
 									<div class="col-md-12 mr-1">
 										<base-input
-											v-if="tokenModel.templateId == '1'"
+											v-if="tokenModel.templateType == '1'"
 											v-model="tokenModel.totalSupply"
 											placeholder="1000"
 											label="Total Supply"
@@ -258,7 +258,7 @@ import {
 	getContractInstance,
 	subscribeToTokenCreatedEvent,
 } from '@/services/web3/tokenFactory'
-import { sendTransaction, toWei } from '@/services/web3/base'
+import { sendTransaction, makeBatchCall, toWei } from '@/services/web3/base'
 import SimpleWizard from '@/components/Miso/Tokens/TokensFactoryForm/Wizard'
 import WizardTab from '@/components/Miso/Tokens/TokensFactoryForm/WizardTab'
 
@@ -314,7 +314,7 @@ export default {
 				name: '',
 				symbol: '',
 				totalSupply: null,
-				templateId: '2',
+				templateType: '2',
 			},
 			waitingForConfirmation: false,
 			transactionHash: null,
@@ -384,7 +384,7 @@ export default {
 					name: '',
 					symbol: '',
 					totalSupply: 0,
-					templateId: '2',
+					templateType: '2',
 					deploymentFee: 0.1,
 				}
 				this.activeStep = 0
@@ -395,6 +395,17 @@ export default {
 		},
 		async createToken() {
 			this.waitingForConfirmation = true
+
+			// Token Template Id
+			const methods = [
+				{ methodName: 'currentTemplateId', args: [this.tokenModel.templateType] },
+			]
+			const [tokenTemplateId] = await makeBatchCall(
+				this.tokenFactoryContract,
+				methods
+			)
+
+			// Data Param
 			const tokenData = [
 				this.tokenModel.name,
 				this.tokenModel.symbol,
@@ -407,8 +418,9 @@ export default {
 				tokenData
 			)
 
+			// Create Token
 			const methodToSend = this.tokenFactoryContract.methods.createToken(
-				this.tokenModel.templateId,
+				tokenTemplateId,
 				this.coinbase,
 				data
 			)

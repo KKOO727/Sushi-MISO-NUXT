@@ -41,6 +41,8 @@ export default {
 	&-link a {
 		color: white;
 	}
+	padding-top: 0px !important;
+	padding-bottom: 0px !important;
 }
 @media screen and (min-width: 1200px) {
 	.active-footer {

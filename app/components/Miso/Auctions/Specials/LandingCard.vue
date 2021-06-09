@@ -33,7 +33,8 @@
 								height="20"
 								:color="computedIconColor"
 							/>
-							{{ status.type }} auction
+							{{ status.type }}
+							<span v-if="status.type !== 'crowdsale'">&nbsp;auction</span>
 						</span>
 					</nobr>
 				</span>
@@ -218,7 +219,7 @@ import {
 import { getContractInstance as crowdsaleContract } from '@/services/web3/auctions/crowdsale'
 import { getContractInstance as batchAuctionContract } from '@/services/web3/auctions/batch'
 import { makeBatchCall } from '@/services/web3/base'
-import { toDecimals, toPrecision, to18Decimals } from '@/util/index'
+import { toDecimals, toPrecision, to18Decimals, toNDecimals } from '@/util/index'
 import { mapGetters } from 'vuex'
 import { inpidatorTheme } from '@/mixins/auctionIndicator'
 
@@ -592,10 +593,16 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
-			this.marketInfo.startPrice = toDecimals(data.startPrice)
-			this.marketInfo.minimumPrice = toDecimals(data.minimumPrice)
+			this.marketInfo.startPrice = toDecimals(
+				data.startPrice,
+				this.marketInfo.paymentCurrency.decimals
+			)
+			this.marketInfo.minimumPrice = toDecimals(
+				data.minimumPrice,
+				this.marketInfo.paymentCurrency.decimals
+			)
 			this.marketInfo.commitmentsTotal = toPrecision(
-				toDecimals(data.commitmentsTotal),
+				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
 				3
 			)
 
@@ -612,13 +619,25 @@ export default {
 				currentTimestamp: Date.parse(new Date()) / 1000,
 				startTime: this.marketInfo.startTime,
 				endTime: this.marketInfo.endTime,
-				startPrice: to18Decimals(this.marketInfo.startPrice),
-				minimumPrice: to18Decimals(this.marketInfo.minimumPrice),
+				startPrice: toNDecimals(
+					this.marketInfo.startPrice,
+					this.marketInfo.paymentCurrency.decimals
+				),
+				minimumPrice: toNDecimals(
+					this.marketInfo.minimumPrice,
+					this.marketInfo.paymentCurrency.decimals
+				),
 				totalTokens: to18Decimals(this.marketInfo.totalTokens),
-				commitmentsTotal: to18Decimals(this.commitmentsTotal),
+				commitmentsTotal: toNDecimals(
+					this.commitmentsTotal,
+					this.marketInfo.paymentCurrency.decimals
+				),
 			}
 			const price = clearingPrice(marketInfo)
-			this.marketInfo.currentPrice = toPrecision(toDecimals(price), 3)
+			this.marketInfo.currentPrice = toPrecision(
+				toDecimals(price, this.marketInfo.paymentCurrency.decimals),
+				3
+			)
 			const tokensCommitted =
 				this.marketInfo.commitmentsTotal / this.marketInfo.currentPrice
 			this.marketInfo.totalTokensCommitted = toPrecision(tokensCommitted, 3)
@@ -633,11 +652,17 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
-			this.marketInfo.rate = toDecimals(data.rate)
-			this.marketInfo.goal = toDecimals(data.goal)
+			this.marketInfo.rate = toDecimals(
+				data.rate,
+				this.marketInfo.paymentCurrency.decimals
+			)
+			this.marketInfo.goal = toDecimals(
+				data.goal,
+				this.marketInfo.paymentCurrency.decimals
+			)
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.commitmentsTotal = toPrecision(
-				toDecimals(data.commitmentsTotal),
+				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
 				2
 			)
 
@@ -662,11 +687,12 @@ export default {
 			this.marketInfo.endTime = data.endTime
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.commitmentsTotal = toPrecision(
-				toDecimals(data.commitmentsTotal),
+				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
 				2
 			)
 			this.marketInfo.minimumCommitmentAmount = toDecimals(
-				data.minimumCommitmentAmount
+				data.minimumCommitmentAmount,
+				this.marketInfo.paymentCurrency.decimals
 			)
 
 			this.status.auctionSuccessful = data.auctionSuccessful
@@ -989,8 +1015,11 @@ export default {
 	@media screen and (min-width: 768px) and (max-width: 877px) {
 		font-size: 0.5rem;
 	}
-	@media screen and (max-width: 359px) {
+	@media screen and (min-width: 360px) and (max-width: 414px) {
 		font-size: 0.7rem;
+	}
+	@media screen and (max-width: 359px) {
+		font-size: 0.5rem;
 	}
 }
 
@@ -1004,27 +1033,30 @@ export default {
 	border-radius: 0.5rem;
 	padding: 0.5rem 0.5rem;
 	color: #ffffff;
-	min-width: 10rem;
+	min-width: 10.5rem;
 	@media screen and (min-width: 1231px) and (max-width: 1326px) {
-		min-width: 9rem;
+		min-width: 9.5rem;
 	}
 	@media screen and (min-width: 1200px) and (max-width: 1230px) {
-		min-width: 7.9rem;
+		min-width: 8.5rem;
 	}
 	@media screen and (min-width: 951px) and (max-width: 1076px) {
-		min-width: 9rem;
+		min-width: 9.5rem;
 	}
 	@media screen and (min-width: 905px) and (max-width: 950px) {
-		min-width: 7.9rem;
+		min-width: 8.5rem;
 	}
 	@media screen and (min-width: 878px) and (max-width: 904px) {
-		min-width: 6.8rem;
+		min-width: 7.5rem;
 	}
 	@media screen and (min-width: 768px) and (max-width: 877px) {
-		min-width: 5.7rem;
+		min-width: 6.5rem;
+	}
+	@media screen and (min-width: 360px) and (max-width: 414px) {
+		min-width: 8.2rem;
 	}
 	@media screen and (max-width: 359px) {
-		min-width: 7.9rem;
+		min-width: 6.2rem;
 	}
 }
 
@@ -1105,15 +1137,15 @@ export default {
 }
 
 .auction-description {
-	font-size: 1.25rem;
+	font-size: 1.1rem;
 	@media screen and (min-width: 1327px) and (max-width: 1440px) {
 		font-size: 0.95rem;
 	}
-	@media screen and (min-width: 1231px) and (max-width: 1326px) {
+	@media screen and (min-width: 1241px) and (max-width: 1326px) {
 		font-size: 0.75rem;
 	}
-	@media screen and (min-width: 1200px) and (max-width: 1230px) {
-		font-size: 0.7rem;
+	@media screen and (min-width: 1200px) and (max-width: 1240px) {
+		font-size: 0.65rem;
 	}
 	@media screen and (min-width: 951px) and (max-width: 1199px) {
 		font-size: 0.75rem;

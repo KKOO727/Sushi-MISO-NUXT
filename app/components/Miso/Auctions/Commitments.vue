@@ -152,7 +152,7 @@ import { mapGetters } from 'vuex'
 import { Table, TableColumn, Select, Option } from 'element-ui'
 import EthImage from '@/components/web3-core/eth-identication/EthImage.vue'
 import * as moment from 'moment'
-import { to18Decimals, shortenAddress } from '@/util'
+import { shortenAddress } from '@/util'
 import clientPaginationMixin from '@/components/Tables/PaginatedTables/clientPaginationMixin'
 import { BasePagination, BaseSwitch } from '@/components'
 
@@ -218,9 +218,6 @@ export default {
 	},
 
 	methods: {
-		to18Decimals(val) {
-			return to18Decimals(val)
-		},
 		shortenAddress(addr) {
 			return shortenAddress(addr, 8)
 		},

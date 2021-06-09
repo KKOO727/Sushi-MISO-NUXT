@@ -156,7 +156,7 @@ import {
 import { getContractInstance as crowdsaleContract } from '@/services/web3/auctions/crowdsale'
 import { getContractInstance as batchAuctionContract } from '@/services/web3/auctions/batch'
 import { makeBatchCall } from '@/services/web3/base'
-import { toDecimals, toPrecision, to18Decimals } from '@/util/index'
+import { toDecimals, toPrecision, to18Decimals, toNDecimals } from '@/util/index'
 
 import CrowdProgress from '~/components/Miso/Auctions/Specials/CrowdProgress'
 import DutchProgress from '~/components/Miso/Auctions/Specials/DutchIndicator'
@@ -418,10 +418,16 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
-			this.marketInfo.startPrice = toDecimals(data.startPrice)
-			this.marketInfo.minimumPrice = toDecimals(data.minimumPrice)
+			this.marketInfo.startPrice = toDecimals(
+				data.startPrice,
+				this.marketInfo.paymentCurrency.decimals
+			)
+			this.marketInfo.minimumPrice = toDecimals(
+				data.minimumPrice,
+				this.marketInfo.paymentCurrency.decimals
+			)
 			this.marketInfo.commitmentsTotal = toPrecision(
-				toDecimals(data.commitmentsTotal),
+				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
 				3
 			)
 
@@ -438,13 +444,25 @@ export default {
 				currentTimestamp: Date.parse(new Date()) / 1000,
 				startTime: this.marketInfo.startTime,
 				endTime: this.marketInfo.endTime,
-				startPrice: to18Decimals(this.marketInfo.startPrice),
-				minimumPrice: to18Decimals(this.marketInfo.minimumPrice),
+				startPrice: toNDecimals(
+					this.marketInfo.startPrice,
+					this.marketInfo.paymentCurrency.decimals
+				),
+				minimumPrice: toNDecimals(
+					this.marketInfo.minimumPrice,
+					this.marketInfo.paymentCurrency.decimals
+				),
 				totalTokens: to18Decimals(this.marketInfo.totalTokens),
-				commitmentsTotal: to18Decimals(this.commitmentsTotal),
+				commitmentsTotal: toNDecimals(
+					this.commitmentsTotal,
+					this.marketInfo.paymentCurrency.decimals
+				),
 			}
 			const price = clearingPrice(marketInfo)
-			this.marketInfo.currentPrice = toPrecision(toDecimals(price), 3)
+			this.marketInfo.currentPrice = toPrecision(
+				toDecimals(price, this.marketInfo.paymentCurrency.decimals),
+				3
+			)
 			const tokensCommitted =
 				this.marketInfo.commitmentsTotal / this.marketInfo.currentPrice
 			this.marketInfo.totalTokensCommitted = toPrecision(tokensCommitted, 3)
@@ -459,11 +477,17 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
-			this.marketInfo.rate = toDecimals(data.rate)
-			this.marketInfo.goal = toDecimals(data.goal)
+			this.marketInfo.rate = toDecimals(
+				data.rate,
+				this.marketInfo.paymentCurrency.decimals
+			)
+			this.marketInfo.goal = toDecimals(
+				data.goal,
+				this.marketInfo.paymentCurrency.decimals
+			)
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.commitmentsTotal = toPrecision(
-				toDecimals(data.commitmentsTotal),
+				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
 				2
 			)
 
@@ -488,11 +512,12 @@ export default {
 			this.marketInfo.endTime = data.endTime
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.commitmentsTotal = toPrecision(
-				toDecimals(data.commitmentsTotal),
+				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
 				2
 			)
 			this.marketInfo.minimumCommitmentAmount = toDecimals(
-				data.minimumCommitmentAmount
+				data.minimumCommitmentAmount,
+				this.marketInfo.paymentCurrency.decimals
 			)
 
 			this.status.auctionSuccessful = data.auctionSuccessful

@@ -26,7 +26,12 @@ export const actions = {
 		const auctions = await makeBatchCall(misoHelperContract(), methods)
 		if (auctions.length > 0) {
 			// const sortedAuctions = sort(auctions, "createdAt", "desc")
-			commit('SET_AUCTIONS', auctions[0])
+			commit(
+				'SET_AUCTIONS',
+				auctions[0].filter(
+					(auction) => auction.addr !== '0xEd4A285845f19945b0EbC04a3165e3DCAf62fEeD'
+				)
+			)
 		}
 		commit('SET_LOADING', false)
 	},

@@ -146,7 +146,6 @@ export default {
 			this.tabIndex = newValue
 		},
 		allStepInputs(event) {
-			console.log(event)
 			let i = 0
 			for (const key in event) {
 				Vue.set(this.allSteps[i], 'active', event[key])

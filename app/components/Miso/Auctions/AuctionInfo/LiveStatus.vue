@@ -257,6 +257,9 @@
 							input-classes="is-small invest-input font-weight-bolder"
 							sixe="md"
 							rounded
+							:clickable="maxTokenAmount > 0"
+							:disabled="maxTokenAmount <= 0"
+							:rules="`required|decimal|max_value:${maxTokenAmount}`"
 						/>
 					</div>
 					<div class="col-12 mt-4 mb-3">
@@ -307,7 +310,9 @@
 											v-if="isApproved"
 											:round="true"
 											class="btn font-weight-bold text-uppercase fs-2 px-5"
-											:disabled="selectedTokenQuantity <= 0 || isUpcoming"
+											:disabled="
+												selectedTokenQuantity <= 0 || isUpcoming || isBadAuction
+											"
 											:loading="loading"
 											@click="invest"
 										>
@@ -317,7 +322,9 @@
 											v-else
 											:round="true"
 											class="btn font-weight-bold text-uppercase fs-2 px-5"
-											:disabled="selectedTokenQuantity <= 0 || isUpcoming"
+											:disabled="
+												selectedTokenQuantity <= 0 || isUpcoming || isBadAuction
+											"
 											:loading="loading"
 											@click="approve"
 										>
@@ -545,7 +552,9 @@ import {
 	divNumbers,
 	multiplyNumbers,
 	toPrecision,
+	toNDecimals,
 } from '@/util'
+import BigNumber from 'bignumber.js'
 import CrowdProgress from '~/components/Miso/Auctions/Details/CrowdProgress'
 import DutchProgress from '~/components/Miso/Auctions/Details/DutchProgress'
 import BatchProgress from '~/components/Miso/Auctions/Details/BatchProgress'
@@ -615,7 +624,6 @@ export default {
 				return this.userTokens
 			},
 			set(val) {
-				console.log(val)
 				this.userTokens = val
 			},
 		},
@@ -644,7 +652,9 @@ export default {
 		},
 		selectedTokenQuantity: {
 			get() {
-				return this.userTokens
+				return BigNumber(this.userTokens)
+					.decimalPlaces(Number(this.marketInfo.paymentCurrency.decimals))
+					.toString()
 			},
 			set(val) {
 				if (val > this.maxInvestAmount) {
@@ -675,6 +685,11 @@ export default {
 			return this.status.auctionSuccessful
 				? 'Auction Finished Successfully'
 				: 'Auction Failed to Reach a Target'
+		},
+		isBadAuction() {
+			return (
+				this.$route.params.address === '0xEd4A285845f19945b0EbC04a3165e3DCAf62fEeD'
+			)
 		},
 		isUpcoming() {
 			const currentTimestamp = Date.parse(new Date()) / 1000
@@ -737,7 +752,13 @@ export default {
 				return true
 			}
 			return (
-				parseInt(this.allowance) >= parseInt(to18Decimals(this.selectedTokenQuantity))
+				parseInt(this.allowance) >=
+				parseInt(
+					toNDecimals(
+						this.selectedTokenQuantity,
+						this.marketInfo.paymentCurrency.decimals
+					)
+				)
 			)
 		},
 		dutchProgress() {
@@ -772,7 +793,10 @@ export default {
 			return progress
 		},
 		userCommitments() {
-			return toDecimals(this.userInfo.commitments)
+			return toDecimals(
+				this.userInfo.commitments,
+				this.marketInfo.paymentCurrency.decimals
+			)
 		},
 		userTokensClaimable() {
 			return toDecimals(this.userInfo.tokensClaimable)
@@ -812,6 +836,7 @@ export default {
 		}
 	},
 	async mounted() {
+		// console.log('====>', this.marketInfo)
 		// if (!this.status.auctionSuccessful) {
 		this.showCountDown()
 		// }
@@ -820,15 +845,18 @@ export default {
 			let balance = 0
 			if (paymentTokenAddress !== '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE') {
 				const methods = [{ methodName: 'balanceOf', args: [this.coinbase] }]
-				balance = await makeBatchCall(
+				const [balanceOf] = await makeBatchCall(
 					erc20TokenContract(paymentTokenAddress),
 					methods
 				)
+				balance = balanceOf
 				await this.updateAllowance()
 			} else {
 				balance = await web3.eth.getBalance(this.coinbase)
 			}
-			this.accountBalance = parseFloat(toPrecision(toDecimals(balance), 3))
+			this.accountBalance = parseFloat(
+				toPrecision(toDecimals(balance, this.marketInfo.paymentCurrency.decimals), 3)
+			)
 		}
 		const auctionAddress = this.$route.params.address
 		this.contractInstance = getAuctionContract(auctionAddress)
@@ -916,6 +944,18 @@ export default {
 			}, 1000)
 		},
 		invest() {
+			if (
+				this.status.type !== 'batch' &&
+				BigNumber(this.tokenAmount).isGreaterThan(BigNumber(this.maxTokenAmount))
+			)
+				return
+			if (
+				BigNumber(this.selectedTokenQuantity).isGreaterThan(
+					BigNumber(this.accountBalance)
+				)
+			)
+				return
+
 			const contract = getAuctionContract(this.$route.params.address)
 			this.loading = true
 			let method
@@ -928,7 +968,10 @@ export default {
 				value = to18Decimals(this.selectedTokenQuantity)
 			} else {
 				method = contract.methods.commitTokens(
-					to18Decimals(this.selectedTokenQuantity),
+					toNDecimals(
+						this.selectedTokenQuantity,
+						this.marketInfo.paymentCurrency.decimals
+					),
 					true
 				)
 			}
@@ -942,7 +985,10 @@ export default {
 		approve() {
 			this.loading = true
 			const auctionAddress = this.$route.params.address
-			const allowanceAmount = to18Decimals(this.selectedTokenQuantity)
+			const allowanceAmount = toNDecimals(
+				this.selectedTokenQuantity,
+				this.marketInfo.paymentCurrency.decimals
+			)
 			const method = erc20TokenContract(
 				this.marketInfo.paymentCurrency.addr
 			).methods.approve(auctionAddress, allowanceAmount)
