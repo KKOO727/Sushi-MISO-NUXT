@@ -66,16 +66,20 @@
 								<div class="col-md-6 form-group">
 									<span class="font-weight-bold fs-4">PRICE PER TOKEN</span>
 
-									<base-input
+									<currency-input
 										v-model="model.tokenPrice"
 										:disabled="!tokensApproved"
 										name="price per token"
-										class="col-md-6"
-										type="text"
+										class="form-control font-weight-bold text-bg-white mt-2"
 										placeholder="0"
-										rules="required|isBigger:0"
+										:currency="{
+											suffix: ' ' + model.paymentCurrency.symbol || 'ETH',
+										}"
+										locale="en"
+										:precision="Number(model.paymentCurrency.decimals)"
+										:allow-negative="false"
 										@focus="focusInputCrowdsale('tokenPrice')"
-									></base-input>
+									/>
 								</div>
 
 								<div class="col-md-6 form-group">

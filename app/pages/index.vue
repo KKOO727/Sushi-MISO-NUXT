@@ -108,7 +108,7 @@ import {
 import { getContractInstance as crowdsaleContract } from '@/services/web3/auctions/crowdsale'
 import { getContractInstance as batchAuctionContract } from '@/services/web3/auctions/batch'
 import { makeBatchCall } from '@/services/web3/base'
-import { toDecimals, toPrecision, to18Decimals } from '@/util/index'
+import { toDecimals, toPrecision, to18Decimals, toNDecimals } from '@/util/index'
 
 export default {
 	name: 'LiveAuctions',
@@ -142,7 +142,7 @@ export default {
 			cardContent: [],
 			cardContentTemplate: [
 				{
-					cardimg: 'card01.png',
+					cardimg: 'card01.jpg',
 					mobilecardimg: 'card_mobile01.png',
 					logoimg:
 						'https://github.com/manifoldfinance/boards/blob/master/256_256.png?raw=true',
@@ -172,7 +172,7 @@ export default {
 					social: {},
 				},
 				{
-					cardimg: 'card01.png',
+					cardimg: 'card03.png',
 					mobilecardimg: 'card_mobile01.png',
 					logoimg:
 						'https://github.com/manifoldfinance/boards/blob/master/256_256.png?raw=true',
@@ -243,8 +243,8 @@ export default {
 		},
 	},
 	beforeMount() {
-		this.scrollHeight = window.innerHeight - 320
-		this.paneScrollHeight = window.innerHeight - 200
+		this.scrollHeight = window.innerHeight - 260
+		this.paneScrollHeight = window.innerHeight - 260
 		window.addEventListener('resize', this.myResize)
 	},
 	beforeDestroy() {
@@ -322,10 +322,7 @@ export default {
 							break
 						case 'description':
 							this.cardContent[i].description = data
-							this.cardContent[i].panescript = data
-							break
-						case 'twitter':
-							this.cardContent[i].social[name] = 'https://' + data
+							// this.cardContent[i].panescript = data
 							break
 						default:
 							this.cardContent[i].social[name] = data
@@ -334,12 +331,12 @@ export default {
 				}
 			})
 
-			if (this.cardContent[i].description)
-				this.cardContent[i].description =
-					this.cardContent[i].description.substring(0, 200) + ' ...'
-			if (this.cardContent[i].panescript)
-				this.cardContent[i].panescript =
-					this.cardContent[i].panescript.substring(0, 60) + ' ...'
+			// if (this.cardContent[i].description)
+			// 	this.cardContent[i].description =
+			// 		this.cardContent[i].description.substring(0, 200) + ' ...'
+			// if (this.cardContent[i].panescript)
+			// 	this.cardContent[i].panescript =
+			// 		this.cardContent[i].panescript.substring(0, 60) + ' ...'
 		}
 	},
 	methods: {
@@ -369,10 +366,16 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
-			this.marketInfo.startPrice = toDecimals(data.startPrice)
-			this.marketInfo.minimumPrice = toDecimals(data.minimumPrice)
+			this.marketInfo.startPrice = toDecimals(
+				data.startPrice,
+				this.marketInfo.paymentCurrency.decimals
+			)
+			this.marketInfo.minimumPrice = toDecimals(
+				data.minimumPrice,
+				this.marketInfo.paymentCurrency.decimals
+			)
 			this.marketInfo.commitmentsTotal = toPrecision(
-				toDecimals(data.commitmentsTotal),
+				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
 				3
 			)
 
@@ -389,13 +392,25 @@ export default {
 				currentTimestamp: Date.parse(new Date()) / 1000,
 				startTime: this.marketInfo.startTime,
 				endTime: this.marketInfo.endTime,
-				startPrice: to18Decimals(this.marketInfo.startPrice),
-				minimumPrice: to18Decimals(this.marketInfo.minimumPrice),
+				startPrice: toNDecimals(
+					this.marketInfo.startPrice,
+					this.marketInfo.paymentCurrency.decimals
+				),
+				minimumPrice: toNDecimals(
+					this.marketInfo.minimumPrice,
+					this.marketInfo.paymentCurrency.decimals
+				),
 				totalTokens: to18Decimals(this.marketInfo.totalTokens),
-				commitmentsTotal: to18Decimals(this.commitmentsTotal),
+				commitmentsTotal: toNDecimals(
+					this.marketInfo.commitmentsTotal,
+					this.marketInfo.paymentCurrency.decimals
+				),
 			}
 			const price = clearingPrice(marketInfo)
-			this.marketInfo.currentPrice = toPrecision(toDecimals(price), 3)
+			this.marketInfo.currentPrice = toPrecision(
+				toDecimals(price, this.marketInfo.paymentCurrency.decimals),
+				3
+			)
 			const tokensCommitted =
 				this.marketInfo.commitmentsTotal / this.marketInfo.currentPrice
 			this.marketInfo.totalTokensCommitted = toPrecision(tokensCommitted, 3)
@@ -410,11 +425,17 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
-			this.marketInfo.rate = toDecimals(data.rate)
-			this.marketInfo.goal = toDecimals(data.goal)
+			this.marketInfo.rate = toDecimals(
+				data.rate,
+				this.marketInfo.paymentCurrency.decimals
+			)
+			this.marketInfo.goal = toDecimals(
+				data.goal,
+				this.marketInfo.paymentCurrency.decimals
+			)
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.commitmentsTotal = toPrecision(
-				toDecimals(data.commitmentsTotal),
+				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
 				2
 			)
 
@@ -439,11 +460,12 @@ export default {
 			this.marketInfo.endTime = data.endTime
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.commitmentsTotal = toPrecision(
-				toDecimals(data.commitmentsTotal),
+				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
 				2
 			)
 			this.marketInfo.minimumCommitmentAmount = toDecimals(
-				data.minimumCommitmentAmount
+				data.minimumCommitmentAmount,
+				this.marketInfo.paymentCurrency.decimals
 			)
 
 			this.status.auctionSuccessful = data.auctionSuccessful
@@ -470,8 +492,8 @@ export default {
 		},
 
 		myResize() {
-			this.scrollHeight = window.innerHeight - 320
-			this.paneScrollHeight = window.innerHeight - 200
+			this.scrollHeight = window.innerHeight - 260
+			this.paneScrollHeight = window.innerHeight - 260
 		},
 
 		paneClick(ind) {
@@ -544,21 +566,12 @@ export default {
 <style lang="scss" scoped>
 .bowl {
 	width: 6rem;
-	height: fit-content;
+	// height: fit-content;
 	margin: auto 0;
 	@media screen and (max-width: 400px) {
 		width: 4.5rem;
 	}
 }
-// .misoido {
-// 	font-size: 3rem;
-// 	@media screen and (min-width: 360px) and (max-width: 400px) {
-// 		font-size: 2rem;
-// 	}
-// 	@media screen and (max-width: 359px) {
-// 		font-size: 1.7rem;
-// 	}
-// }
 .misoido {
 	width: 13rem;
 	height: fit-content;
@@ -571,6 +584,10 @@ export default {
 	background-image: linear-gradient(115deg, #ff000b 0%, #ff5100 40%, #f800ff 80%);
 	height: 2px;
 	margin: 0 auto;
+	@media screen and (max-width: 767px) {
+		margin: 0 -30px;
+		margin-top: 1rem;
+	}
 }
 
 .scrolldiv {

@@ -35,6 +35,7 @@ import SimpleWizard from './Wizard/Wizard.vue'
 import SimpleauctionWizard from './Wizard/Wizardauction.vue'
 import LiquidLauncherWizard from './Wizard/LiquidLauncherWizard.vue'
 import LiquidWizard from './Wizard/LiquidWizard.vue'
+import PointlistWizard from './Wizard/PointlistWizard.vue'
 import WizardTab from './Wizard/WizardTab.vue'
 import LoadingPanel from './LoadingPanel.vue'
 
@@ -79,6 +80,7 @@ export {
 	SimpleauctionWizard,
 	LiquidWizard,
 	LiquidLauncherWizard,
+	PointlistWizard,
 	WizardTab,
 	AnimatedNumber,
 	BaseButton,

@@ -25,7 +25,7 @@
 				class="text-white"
 				:class="[slideBar ? 'pl-4 ml-1' : 'pl-2']"
 			>
-				MISO v1.0.4.2
+				MISO v1.0.4.4
 			</span>
 		</div>
 		<div v-if="notDesktopSize" slot="logo" class="d-flex justify-content-center">
@@ -381,6 +381,17 @@ export default {
 					},
 					rpcUrls: ['https://bsc-dataseed.binance.org'],
 					blockExplorerUrls: ['https://bscscan.com'],
+				},
+				{
+					chainId: '0x13881',
+					chainName: 'Matic Testnet',
+					nativeCurrency: {
+						name: 'Matic',
+						symbol: 'MATIC',
+						decimals: 18,
+					},
+					rpcUrls: ['https://rpc-mumbai.matic.today'],
+					blockExplorerUrls: ['https://explorer-mumbai.maticvigil.com'],
 				},
 			],
 			PendingIDs: [

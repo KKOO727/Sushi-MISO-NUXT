@@ -515,6 +515,7 @@
 							</div>
 						</form>
 						<span
+							v-if="isValidListAddress"
 							class="
 								text-uppercase text-secondary
 								font-weight-bold
@@ -527,7 +528,11 @@
 							Point List
 						</span>
 						<validation-observer v-slot="{ invalid }">
-							<form class="needs-validation" @submit.prevent="updatePointList">
+							<form
+								v-if="isValidListAddress"
+								class="needs-validation"
+								@submit.prevent="updatePointList"
+							>
 								<div class="form-row justify-content-center mt-4">
 									<div
 										v-for="(point, index) in pointsListModel.points"
@@ -654,6 +659,7 @@ import {
 	toWei,
 } from '@/services/web3/base'
 import Swal from 'sweetalert2'
+import { zeroAddress } from '@/util/web3'
 
 export default {
 	name: 'AuctionAdminInfo',
@@ -692,6 +698,11 @@ export default {
 		...mapGetters({
 			coinbase: 'ethereum/coinbase',
 		}),
+		isValidListAddress() {
+			return (
+				this.list.address !== zeroAddress && web3.utils.isAddress(this.list.address)
+			)
+		},
 	},
 	watch: {
 		fileinput() {

@@ -1,4 +1,4 @@
-import BigNumber from "bignumber.js"
+import BigNumber from 'bignumber.js'
 /**
  * Shorten an Ethereum address. `charsLength` allows to change the number of
  * characters on both sides of the ellipsis.
@@ -15,15 +15,13 @@ import BigNumber from "bignumber.js"
 export const shortenAddress = (address, charsLength = 4) => {
 	const prefixLength = 2 // "0x"
 	if (!address) {
-		return ""
+		return ''
 	}
 	if (address.length < charsLength * 2 + prefixLength) {
 		return address
 	}
 	return (
-		address.slice(0, charsLength + prefixLength) +
-		"…" +
-		address.slice(-charsLength)
+		address.slice(0, charsLength + prefixLength) + '…' + address.slice(-charsLength)
 	)
 }
 
@@ -48,6 +46,11 @@ export const to18Decimals = (value) => {
 	return BigNumber(value).multipliedBy(TENPOW18).toFixed()
 }
 
+export const toNDecimals = (value, decimals) => {
+	const TENPOW = BigNumber(10).pow(decimals)
+	return BigNumber(value).multipliedBy(TENPOW).toFixed()
+}
+
 export const toPrecision = (value, precision) => {
 	const number = BigNumber(value).toPrecision(precision)
 	return BigNumber(number).toFixed()
@@ -63,4 +66,4 @@ export const divNumbers = (a, b) => {
 	return BigNumber(a).dividedBy(b).toFixed()
 }
 
-export const zeroAddress = "0x0000000000000000000000000000000000000000"
+export const zeroAddress = '0x0000000000000000000000000000000000000000'

@@ -227,7 +227,7 @@ import FinalStep from '@/components/Miso/Factory/Liquidity/FinalStep'
 import { Vue } from 'vue-property-decorator'
 import { ZoomYTransition } from 'vue2-transitions'
 import { mapMutations, mapGetters } from 'vuex'
-import { sendTransactionAndWait } from '@/services/web3/base'
+import { sendTransactionAndWait, makeBatchCall } from '@/services/web3/base'
 import { to18Decimals } from '@/util'
 import { dai, uniswapFactory as uniswapFactoryAddress } from '@/constants/contracts'
 import { initContractInstance as misoLauncherContract } from '@/services/web3/liquidityLauncher'
@@ -274,7 +274,7 @@ export default {
 				customDays: '180',
 				inputDays: null,
 			},
-			chosenLauncherType: 1,
+			chosenLauncherType: 3,
 			firstSteps: [
 				{
 					active: false,
@@ -395,7 +395,7 @@ export default {
 				})
 			}
 		},
-		onStepValidated(validated, model) {
+		async onStepValidated(validated, model) {
 			if (this.model === null) {
 				this.model = model
 			} else {
@@ -404,20 +404,32 @@ export default {
 			this.modelUpdate(model)
 
 			if (this.tabIndex === 3) {
+				// Launcher Template Id
+				const methods = [
+					{ methodName: 'currentTemplateId', args: [this.chosenLauncherType] },
+				]
+				const [launcherTemplateId] = await makeBatchCall(
+					misoLauncherContract(),
+					methods
+				)
+
 				return new Promise((resolve) => {
 					this.nextBtnLoading = true
-					const launcherTemplateID = 1
+
+					// Data Param
 					let data
-					switch (launcherTemplateID) {
-						case 1:
+					switch (this.chosenLauncherType) {
+						case 3:
 							data = this.getdataParams()
 							break
 						default:
 							data = this.getdataParams()
 							break
 					}
+
+					// Create Launcher
 					const method = misoLauncherContract().methods.createLauncher(
-						launcherTemplateID,
+						launcherTemplateId,
 						model.token.address,
 						to18Decimals(model.amount),
 						dai.misoFeeAcct,
