@@ -300,12 +300,12 @@ export default {
 				this.paymentCurrency.address = usdc.address[this.currentProvidersNetworkId]
 				this.paymentCurrency.name = 'USD Coin'
 				this.paymentCurrency.symbol = 'USDC'
-				this.paymentCurrency.decimals = 18
+				this.paymentCurrency.decimals = 6
 			} else if (currency === 'TETHER') {
 				this.paymentCurrency.address = tether.address[this.currentProvidersNetworkId]
 				this.paymentCurrency.name = 'Tether'
 				this.paymentCurrency.symbol = 'USDT'
-				this.paymentCurrency.decimals = 18
+				this.paymentCurrency.decimals = 6
 			} else if (currency === 'DAI') {
 				this.paymentCurrency.address = dai.address[this.currentProvidersNetworkId]
 				this.paymentCurrency.name = 'Dai'

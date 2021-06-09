@@ -16,7 +16,7 @@ import Rinkeby from '@/assets/networks/rinkeby-network.jpg'
 import Ropsten from '@/assets/networks/ropsten-network.jpg'
 import xDai from '@/assets/networks/xdai-network.jpg'
 
-export const RIGHT_NETWORKS = [1, 5, 3, 4, 42, 97]
+export const RIGHT_NETWORKS = [1, 5, 3, 4, 42, 97, 80001]
 export const DEFAULT_NETWORK = 1
 
 export const NETWORK_ICON = {
@@ -155,15 +155,25 @@ export const EXPLORERS = {
 	80001: {
 		name: 'Matic Testnet',
 		unit: 'MATIC',
-		isTest: false,
-		hasExplorer: false,
+		isTest: true,
+		hasExplorer: true,
+		explorer: {
+			root: 'https://explorer-mumbai.maticvigil.com/',
+			address: 'address/',
+			tx: 'tx/',
+		},
 		httpProvider: 'https://rpc-mumbai.matic.today',
 	},
 	137: {
 		name: 'Matic',
 		unit: 'MATIC',
-		isTest: true,
-		hasExplorer: false,
+		isTest: false,
+		hasExplorer: true,
+		explorer: {
+			root: 'https://explorer-mainnet.maticvigil.com/',
+			address: 'address/',
+			tx: 'tx/',
+		},
 		httpProvider: 'https://rpc-mainnet.maticvigil.com',
 	},
 	56: {

@@ -79,7 +79,8 @@
 											suffix: ' ' + model.paymentCurrency.symbol || 'ETH',
 										}"
 										locale="en"
-										:precision="8"
+										:precision="Number(model.paymentCurrency.decimals)"
+										:allow-negative="false"
 										@focus="focusInput('dutchSettings')"
 									/>
 								</div>
@@ -98,9 +99,13 @@
 										placeholder="0"
 										:currency="{
 											suffix: ' ' + model.paymentCurrency.symbol || 'ETH',
+											distractionFree: true,
+											valueRange: { min: 0 },
+											allowNegative: false,
 										}"
 										locale="en"
-										:precision="8"
+										:precision="Number(model.paymentCurrency.decimals)"
+										:allow-negative="false"
 										@focus="focusInput('dutchSettings')"
 									/>
 								</div>
