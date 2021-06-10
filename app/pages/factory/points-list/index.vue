@@ -38,6 +38,7 @@
 								@on-validated="onStepValidated"
 								@active-focus="allStepInputs"
 							></second-step>
+							<base-divider class="my-5" />
 						</wizard-tab>
 						<wizard-tab :before-change="() => deployPermissionList('step3')">
 							<template slot="label">
@@ -50,6 +51,7 @@
 								:init-model="model"
 								@on-validated="onStepValidated"
 							></third-step>
+							<base-divider class="my-5" />
 						</wizard-tab>
 					</pointlist-wizard>
 				</client-only>
