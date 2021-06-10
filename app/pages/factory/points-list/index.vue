@@ -150,7 +150,7 @@ export default {
 				},
 				{
 					active: false,
-					top: 35,
+					top: 50,
 					title: 'AUCTION PAYMENT TOKEN*',
 					desctiption:
 						'Select the currency you accept as payment during the auction.  If you don’t see the ERC-20 token you are looking for, input by pasting the address in the custom field.',
