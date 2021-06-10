@@ -133,6 +133,10 @@ export default {
 			model: {
 				listOwner: '',
 				points: [],
+				auction: {
+					payment_currency: 'ETH',
+					customAuctionAddress: '',
+				},
 			},
 			nextBtnLoading: false,
 			sidebarTitles: ['Initial Setup', 'Set Permissions', 'Review & Deploy'],
@@ -147,6 +151,13 @@ export default {
 				{
 					active: false,
 					top: 35,
+					title: 'AUCTION PAYMENT TOKEN*',
+					desctiption:
+						'Select the currency you accept as payment during the auction.  If you don’t see the ERC-20 token you are looking for, input by pasting the address in the custom field.',
+				},
+				{
+					active: false,
+					top: 25,
 					title: 'IMPORT LIST',
 					desctiption:
 						'Autofill your list by uploading a .csv file with instructed format below, or enter list manually in the next step. \n\n CSV Formatting \n\n In your spreadsheet application, enter the name of your list as the filename and format the following: \n\nThe word “Address” in column 1A \n\nThe word “Amount” in column 1B \n\nAddresses and amounts in subsequent A & B columns, respectively \n\nExport from your spreadsheet application as a .CSV file and upload here',
