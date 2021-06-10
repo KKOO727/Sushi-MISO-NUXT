@@ -46,77 +46,10 @@
 							</div>
 						</div>
 					</div>
-					<div
-						class="
-							border-miso
-							radio_wrapper
-							d-flex
-							justify-content-between
-							align-items-center
-						"
-						@click="focusInput('auction_payment_token')"
-					>
-						<div class="d-flex align-items-center pl-3">
-							<base-radio
-								v-model="model.auction.payment_currency"
-								name="ETH"
-								class="text-white font-weight-bold fs-4 mr-3 mb-2"
-							>
-								ETHEREUM
-							</base-radio>
-							<svg-icon icon="ethereum" height="30" width="30" />
-						</div>
-						<div class="d-flex align-items-center pl-3">
-							<base-radio
-								v-model="model.auction.payment_currency"
-								name="DAI"
-								class="text-white font-weight-bold fs-3 mr-3 mb-2"
-							>
-								DAI
-							</base-radio>
-							<div class="tokenImage">
-								<img src="@/assets/svg/DAI.svg" alt="DAI" class="img-fluid" />
-							</div>
-						</div>
-						<div class="d-flex align-items-center pl-3">
-							<base-radio
-								v-model="model.auction.payment_currency"
-								name="USDC"
-								class="text-white font-weight-bold fs-3 mr-3 mb-2"
-							>
-								USDC
-							</base-radio>
-							<div class="tokenImage">
-								<img src="@/assets/svg/USD.svg" alt="USDC" />
-							</div>
-						</div>
-						<div class="d-flex align-items-center pl-3">
-							<base-radio
-								v-model="model.auction.payment_currency"
-								name="USDT"
-								class="text-white font-weight-bold fs-4 mr-3 mb-2"
-							>
-								TETHER (USDT)
-							</base-radio>
-							<div class="tokenImage">
-								<img src="@/assets/svg/USDT.svg" alt="USDT" class="img-fluid" />
-							</div>
-						</div>
-						<div class="d-flex col-12 align-items-center pl-3">
-							<base-radio
-								v-model="model.auction.payment_currency"
-								name="CUSTOM"
-								class="text-white col-2 font-weight-bold fs-4 mr-3 mb-2"
-							>
-								CUSTOM
-							</base-radio>
-							<base-input
-								v-model="model.auction.customAuctionAddress"
-								class="custom-input custom-disabled-input col-10 p-0"
-								name="token"
-							/>
-						</div>
-					</div>
+					<auction-payment-token
+						:tokens-approved="auctionPaymenttokenApproved"
+						@currency-updated="updateCurrency($event)"
+					/>
 				</div>
 			</div>
 
@@ -166,11 +99,13 @@
 import { mapGetters } from 'vuex'
 import { Steps, Step } from 'element-ui'
 import { subscribeToPointListDeployedEvent } from '@/services/web3/listFactory'
+import AuctionPaymentToken from '../Auctions/Factories/AuctionPaymentToken.vue'
 
 export default {
 	components: {
 		[Steps.name]: Steps,
 		[Step.name]: Step,
+		AuctionPaymentToken,
 	},
 	props: {
 		initModel: {
@@ -183,7 +118,6 @@ export default {
 			wizardModel: null,
 			pointListAddress: null,
 			pointListDeployedEventSubscribtion: null,
-			fileinput: '',
 			items: {
 				listOwnerAddress: false,
 				auction_payment_token: false,
@@ -200,20 +134,8 @@ export default {
 		model() {
 			return this.initModel
 		},
-	},
-	watch: {
-		fileinput() {
-			const arr = this.fileinput.split('\r\n')
-			const points = arr
-				.filter((elm) => elm !== '')
-				.map((elm) => {
-					const childArray = elm.split(',')
-					return {
-						account: childArray[0],
-						amount: childArray[childArray.length - 1],
-					}
-				})
-			this.model.points = points
+		auctionPaymenttokenApproved() {
+			return this.model.listOwner !== ''
 		},
 	},
 	mounted() {
@@ -281,6 +203,14 @@ export default {
 					this.items[key] = false
 				}
 			}
+			this.$emit('active-focus', this.items)
+		},
+		updateCurrency(currency) {
+			this.items.listOwnerAddress = false
+			this.items.importList = false
+			this.items.addresses_purchaseCaps = false
+			this.model.auction.payment_currency = currency
+			this.items.auction_payment_token = true
 			this.$emit('active-focus', this.items)
 		},
 	},
