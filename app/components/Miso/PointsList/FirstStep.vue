@@ -37,53 +37,85 @@
 			<div class="form-row justify-content-center mb-4 pt-4">
 				<div class="col-md-12">
 					<div class="d-flex">
-						<div class="d-inline border-bottom mb-2">
+						<div class="d-inline border-bottom mb-4">
 							<div
 								class="font-weight-bold fs-4 mb-2"
-								:class="{ 'text-white': items.importList }"
+								:class="{ 'text-white': items.auction_payment_token }"
 							>
-								IMPORT OR CREATE LIST*
+								AUCTION PAYMENT TOKEN*
 							</div>
 						</div>
 					</div>
-					<p class="mb-4">
-						Autofill your list by uploading a .csv file below, or create one manually.
-					</p>
 					<div
-						class="import_create_list row d-flex"
-						rules="required"
-						@focus="focusInput('importList')"
+						class="
+							border-miso
+							radio_wrapper
+							d-flex
+							justify-content-between
+							align-items-center
+						"
+						@click="focusInput('auction_payment_token')"
 					>
-						<div class="col-md-6">
-							<div class="justify-content-center">
-								<div class="input-file-container">
-									<input
-										id="importCSV"
-										type="file"
-										class="input-file"
-										@change="onFileChange"
-									/>
-									<label
-										tabindex="0"
-										for="my-file"
-										class="input-file-trigger is-rounded"
-									>
-										Import the CSV
-									</label>
-								</div>
+						<div class="d-flex align-items-center pl-3">
+							<base-radio
+								v-model="model.auction.payment_currency"
+								name="ETH"
+								class="text-white font-weight-bold fs-4 mr-3 mb-2"
+							>
+								ETHEREUM
+							</base-radio>
+							<svg-icon icon="ethereum" height="30" width="30" />
+						</div>
+						<div class="d-flex align-items-center pl-3">
+							<base-radio
+								v-model="model.auction.payment_currency"
+								name="DAI"
+								class="text-white font-weight-bold fs-3 mr-3 mb-2"
+							>
+								DAI
+							</base-radio>
+							<div class="tokenImage">
+								<img src="@/assets/svg/DAI.svg" alt="DAI" class="img-fluid" />
 							</div>
 						</div>
-						<div class="col-md-6"></div>
-					</div>
-					<div class="d-flex mt-4">
-						<p
-							class="border-bottom font-weight-bold"
-							:class="{ 'text-white': items.importList }"
-							style="color: rgba(255, 255, 255, 0.5)"
-							@click="addPoint"
-						>
-							Create a list manually
-						</p>
+						<div class="d-flex align-items-center pl-3">
+							<base-radio
+								v-model="model.auction.payment_currency"
+								name="USDC"
+								class="text-white font-weight-bold fs-3 mr-3 mb-2"
+							>
+								USDC
+							</base-radio>
+							<div class="tokenImage">
+								<img src="@/assets/svg/USD.svg" alt="USDC" />
+							</div>
+						</div>
+						<div class="d-flex align-items-center pl-3">
+							<base-radio
+								v-model="model.auction.payment_currency"
+								name="USDT"
+								class="text-white font-weight-bold fs-4 mr-3 mb-2"
+							>
+								TETHER (USDT)
+							</base-radio>
+							<div class="tokenImage">
+								<img src="@/assets/svg/USDT.svg" alt="USDT" class="img-fluid" />
+							</div>
+						</div>
+						<div class="d-flex col-12 align-items-center pl-3">
+							<base-radio
+								v-model="model.auction.payment_currency"
+								name="CUSTOM"
+								class="text-white col-2 font-weight-bold fs-4 mr-3 mb-2"
+							>
+								CUSTOM
+							</base-radio>
+							<base-input
+								v-model="model.auction.customAuctionAddress"
+								class="custom-input custom-disabled-input col-10 p-0"
+								name="token"
+							/>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -154,6 +186,7 @@ export default {
 			fileinput: '',
 			items: {
 				listOwnerAddress: false,
+				auction_payment_token: false,
 				importList: false,
 				addresses_purchaseCaps: false,
 			},
