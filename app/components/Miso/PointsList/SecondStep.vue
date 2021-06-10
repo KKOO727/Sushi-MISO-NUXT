@@ -16,11 +16,7 @@
 					<p class="mb-4">
 						Autofill your list by uploading a .csv file below, or create one manually.
 					</p>
-					<div
-						class="import_create_list row d-flex"
-						rules="required"
-						@focus="focusInput('importList')"
-					>
+					<div class="import_create_list row d-flex" rules="required">
 						<div class="col-md-6">
 							<div class="justify-content-center">
 								<div
@@ -32,6 +28,7 @@
 										type="file"
 										class="input-file"
 										accept=".csv"
+										rules="required"
 										@change="onFileChange"
 									/>
 									<div class="upload__text">
@@ -101,7 +98,7 @@
 				</div>
 			</div>
 
-			<div class="form-row justify-content-center">
+			<!-- <div class="form-row justify-content-center">
 				<div
 					v-for="(point, index) in model.points"
 					:key="index"
@@ -139,7 +136,7 @@
 						</base-button>
 					</div>
 				</div>
-			</div>
+			</div> -->
 		</validation-observer>
 	</div>
 </template>
@@ -213,6 +210,12 @@ export default {
 			this.model.points.push({ account: '', amount: 0 })
 		},
 		onFileChange(e) {
+			this.items.listOwnerAddress = false
+			this.items.addresses_purchaseCaps = false
+			this.items.auction_payment_token = false
+			this.items.importList = true
+			this.$emit('active-focus', this.items)
+
 			const files = e.target.files || e.dataTransfer.files
 			if (!files.length) return
 			this.createInput(files[0])
