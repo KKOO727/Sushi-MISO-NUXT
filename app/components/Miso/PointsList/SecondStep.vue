@@ -298,7 +298,7 @@ export default {
 			this.$router.push(url)
 		},
 		validate() {
-            const observer = this.manualObserver ? this.$refs.manualObserver: this.$refs.observer;
+            const observer = this.manualInputState ? this.$refs.manualObserver: this.$refs.observer;
 			return observer.validate().then((res) => {
 				this.$emit('on-validated', res, this.model)
 				return res
