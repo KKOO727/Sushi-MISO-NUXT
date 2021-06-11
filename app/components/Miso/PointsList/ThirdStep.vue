@@ -31,7 +31,7 @@
 						</div>
 					</div>
 					<div v-for="(item, index) in pointsEntry" :key="index">
-						<div class="row pl-3 pb-2">
+						<div class="row pl-3 pb-2 align-items-center">
 							<div class="col-4 mb-2 pl-0">
 								<span class="font-weight-bold fs-3 mb-2 text-white">
 									{{ index * 100 + 1 }} - {{ index * 100 + item }}
@@ -42,12 +42,23 @@
 									Not Approved
 								</span>
 							</div>
+							<div class="col-4 mb-2">
+								<base-button
+									:loading="addtoListLoading"
+									round
+									type="default"
+									class="btn btn-default"
+									@click.native="addtoList"
+								>
+									Add to list
+								</base-button>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="form-row justify-content-center mb-4">
-				<div class="col-md-12">
+				<div class="col-md-7">
 					<div class="d-flex mb-1">
 						<div class="d-inline">
 							<div class="font-weight-bold fs-4 text-white opacity-2">
@@ -58,6 +69,17 @@
 					<div class="fs-4 d-flex align-items-center text-white font-bold">
 						{{ model.points.length }}
 					</div>
+				</div>
+				<div class="col-md-5">
+					<base-button
+						:loading="addtoListLoading"
+						round
+						type="default"
+						class="btn btn-default"
+						@click.native="downloadCSV"
+					>
+						DOWNLOAD .CSV TO REVIEW
+					</base-button>
 				</div>
 			</div>
 		</validation-observer>
@@ -92,6 +114,7 @@ export default {
 			successFileLoad: 'ready',
 			fileName: '',
 			points: [],
+			addtoListLoading: false,
 			entryCounts: 0,
 		}
 	},
@@ -148,6 +171,8 @@ export default {
 				this.points.push(_bunchLength)
 			}
 		},
+		addtoList() {},
+		downloadCSV() {},
 	},
 }
 </script>
