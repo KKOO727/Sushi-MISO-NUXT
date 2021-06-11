@@ -356,8 +356,8 @@ export default {
 	border: 1px dashed #d9d9d9;
 	border-radius: 6px;
 	box-sizing: border-box;
-	width: auto;
-	height: auto;
+	width: 100% !important;
+	height: 100% !important;
 	text-align: center;
 	cursor: pointer;
 	position: relative;
