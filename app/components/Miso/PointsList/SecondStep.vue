@@ -97,50 +97,58 @@
 					</div>
 				</div>
 			</div>
-
 		</validation-observer>
-        <validation-observer v-else ref="manualObserver">
-			<div class="form-row justify-content-center"> 
-                <!-- style="min-height: 500px;display: block;" -->
-                <div class="col-12 d-flex">
-                    <div class="col-md-1"></div>
-                    <div class="col-md-5">
-                        <div class="d-flex">
-                            <div class="d-inline border-bottom mb-4">
-                                <div class="font-weight-bold fs-4 mb-2 text-white">
-                                    ADDRESSES
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-5">
-                        <div class="d-flex">
-                            <div class="d-inline border-bottom mb-4">
-                                <div class="font-weight-bold fs-4 mb-2 text-white">
-                                    PURCHASE AMOUNT CAPS
-                                </div>
-                            </div>
+		<validation-observer v-else ref="manualObserver">
+			<div class="form-row justify-content-center">
+				<!-- style="min-height: 500px;display: block;" -->
+				<div class="col-12 d-flex">
+					<div class="col-md-1"></div>
+					<div class="col-md-5">
+						<div class="d-flex">
+							<div class="d-inline border-bottom mb-4">
+								<div class="font-weight-bold fs-4 mb-2 text-white">ADDRESSES</div>
+							</div>
 						</div>
-                    </div>
-                </div>
+					</div>
+					<div class="col-md-5">
+						<div class="d-flex">
+							<div class="d-inline border-bottom mb-4">
+								<div class="font-weight-bold fs-4 mb-2 text-white">
+									PURCHASE AMOUNT CAPS
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 				<div
 					v-for="(point, index) in model.points"
 					:key="index"
 					class="col-12 d-flex"
 				>
-                    <div class="col-md-1 mt-2">
-                        <p class="bg-gradient-orange font-weight-bold fs-3 mb-0 py-2 radius-full text-center text-white">
-                            {{index + 1}}
-                        </p>
-                    </div>
+					<div class="col-md-1 mt-2">
+						<p
+							class="
+								bg-gradient-orange
+								font-weight-bold
+								fs-3
+								mb-0
+								py-2
+								text-center text-white
+							"
+							style="width: 40px; height: 40px; border-radius: 50%"
+						>
+							{{ index + 1 }}
+						</p>
+					</div>
 					<div class="col-md-5">
 						<base-input
 							v-model="point.account"
 							name="Account"
 							placeholder="Enter an address"
 							type="text"
-                            class="input-points"
+							class="input-points"
 							rules="required|isAddress"
+							@focus="focusInput('addresses_purchaseCaps')"
 						></base-input>
 					</div>
 					<div class="col-md-5">
@@ -149,32 +157,46 @@
 							name="Amount"
 							placeholder="0.00"
 							type="number"
-                            class="input-points"
+							class="input-points"
 							step="0.00001"
 							min="0"
 							rules="required|min_value:0"
+							@focus="focusInput('addresses_purchaseCaps')"
 						></base-input>
 					</div>
 					<div class="col-md-1">
-                        <div v-if="index !== 0" class="cursor-pointer font-weight-bold fs-3 mb-0 py-1 text-left text-white" @click.prevent="removePoint(index)">X</div>
+						<div
+							v-if="index !== 0"
+							class="
+								cursor-pointer
+								font-weight-bold
+								fs-3
+								mb-0
+								py-1
+								text-left text-white
+							"
+							@click.prevent="removePoint(index)"
+						>
+							X
+						</div>
 					</div>
 				</div>
-                <div class="col-12 d-flex mt-3">
-                    <div class="col-md-1"></div>
-                    <div class="col-md-10">
-                        <base-button
-                            wide
-                            round
-                            class="add-another-points"
-                            :min-width="50"
-                            @click.prevent="addPoint"
-                        >
-                        ADD ANOTHER
-                        </base-button>
-                    </div>
-			    </div>
+				<div class="col-12 d-flex mt-3">
+					<div class="col-md-1"></div>
+					<div class="col-md-10">
+						<base-button
+							wide
+							round
+							class="add-another-points"
+							:min-width="50"
+							@click.prevent="addPoint"
+						>
+							ADD ANOTHER
+						</base-button>
+					</div>
+				</div>
 			</div>
-        </validation-observer>
+		</validation-observer>
 	</div>
 </template>
 <script>
@@ -206,7 +228,7 @@ export default {
 			},
 			successFileLoad: 'ready',
 			fileName: '',
-            manualInputState: false,
+			manualInputState: false,
 		}
 	},
 	computed: {
@@ -244,11 +266,11 @@ export default {
 		selectCurrentAccount() {
 			this.model.listOwner = this.coinbase
 		},
-        showManualInput() {
-            this.model.points = [];
-            this.manualInputState = true;
-            this.addPoint();
-        },
+		showManualInput() {
+			this.model.points = []
+			this.manualInputState = true
+			this.addPoint()
+		},
 		addPoint() {
 			this.model.points.push({ account: '', amount: 0 })
 		},
@@ -298,7 +320,9 @@ export default {
 			this.$router.push(url)
 		},
 		validate() {
-            const observer = this.manualObserver ? this.$refs.manualObserver: this.$refs.observer;
+			const observer = this.manualInputState
+				? this.$refs.manualObserver
+				: this.$refs.observer
 			return observer.validate().then((res) => {
 				this.$emit('on-validated', res, this.model)
 				return res
@@ -332,8 +356,8 @@ export default {
 	border: 1px dashed #d9d9d9;
 	border-radius: 6px;
 	box-sizing: border-box;
-	width: auto;
-	height: auto;
+	width: 100% !important;
+	height: 100% !important;
 	text-align: center;
 	cursor: pointer;
 	position: relative;
@@ -399,13 +423,13 @@ export default {
 .input-file-container .upload__text .file-choose-again {
 	text-decoration: underline;
 }
-.add-another-points{
-    border: 2px solid #FFFFFF50;
-    background: transparent;
+.add-another-points {
+	border: 2px solid #ffffff50;
+	background: transparent;
 }
 .input-points input {
-    border: none;
-    padding-top: 1.8rem !important;
-    padding-bottom: 1.8rem !important;
+	border: none;
+	padding-top: 1.8rem !important;
+	padding-bottom: 1.8rem !important;
 }
 </style>

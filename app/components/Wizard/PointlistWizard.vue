@@ -73,6 +73,7 @@
 							</base-button>
 							<base-button
 								v-if="activeTabIndex < tabCount && activeTabIndex !== 4"
+								:disabled="activeTabIndex === 2"
 								:loading="nextBtnLoading"
 								round
 								type="primary"
