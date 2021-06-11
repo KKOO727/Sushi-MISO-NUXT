@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<div class="row">
-			<div class="col-12 col-lg-9 col-xl-8 order-1 order-lg-0">
+			<div class="col-12 col-lg-9 col-xl-8 order-1 order-lg-0 pl-5 pr-5">
 				<div class="hero-section mt-4 border-bottom-after position-relative px-2">
 					<span class="text-secondary white-txt font-weight-bold pb-2 fs-10 h-100">
 						New Permission List
@@ -38,6 +38,7 @@
 								@on-validated="onStepValidated"
 								@active-focus="allStepInputs"
 							></second-step>
+							<base-divider class="my-5" />
 						</wizard-tab>
 						<wizard-tab :before-change="() => deployPermissionList('step3')">
 							<template slot="label">
@@ -50,6 +51,7 @@
 								:init-model="model"
 								@on-validated="onStepValidated"
 							></third-step>
+							<base-divider class="my-5" />
 						</wizard-tab>
 					</pointlist-wizard>
 				</client-only>
@@ -79,7 +81,7 @@
 					</p>
 				</div>
 				<div class="pl-3">* indicates required step</div>
-				<div>
+				<div v-if="tabIndex === 0 || tabIndex === 1">
 					<template v-for="(item, index) in allSteps">
 						<zoom-y-transition :key="index" :duration="300">
 							<notificatoin
@@ -90,6 +92,60 @@
 							/>
 						</zoom-y-transition>
 					</template>
+				</div>
+				<div v-else>
+					<div class="col-12 d-flex mt-5 pt-5">
+						<span
+							class="justify-content-center text-center py-2 fs-4 font-bold"
+							style="
+								border-radius: 50%;
+								height: 40px;
+								width: 40px;
+								color: #050f39;
+								background-color: #fff;
+								min-width: 40px;
+							"
+						>
+							1
+						</span>
+						<div class="ml-2 pt-2">
+							<span class="text-white font-bold fs-4">CONFIRM DETAILS*</span>
+						</div>
+					</div>
+					<div class="col-12 d-flex mt-2">
+						<span class="fs-2 text-white ml-5 opacity-7">
+							Make sure the wallet owner/admin address and the name are set correctly
+							to your liking.
+						</span>
+					</div>
+
+					<div class="col-12 d-flex mt-4">
+						<span
+							class="justify-content-center text-center py-2 fs-4 font-bold"
+							style="
+								border-radius: 50%;
+								height: 40px;
+								width: 40px;
+								color: #050f39;
+								background-color: #fff;
+								min-width: 40px;
+							"
+						>
+							2
+						</span>
+						<div class="ml-2 pt-2">
+							<span class="text-white font-bold fs-4">
+								CONFIRM ADDRESSES & AMOUNTS*
+							</span>
+						</div>
+					</div>
+					<div class="col-12 d-flex mt-2">
+						<span class="fs-2 text-white ml-5 opacity-7">
+							Double-check your entries by downloading the .csv file to review. Click
+							‘PREVIOUS’ button and re-upload the file if you would like to make any
+							changes.
+						</span>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -133,6 +189,10 @@ export default {
 			model: {
 				listOwner: '',
 				points: [],
+				auction: {
+					payment_currency: 'ETH',
+					customAuctionAddress: '',
+				},
 			},
 			nextBtnLoading: false,
 			sidebarTitles: ['Initial Setup', 'Set Permissions', 'Review & Deploy'],
@@ -146,7 +206,14 @@ export default {
 				},
 				{
 					active: false,
-					top: 35,
+					top: 50,
+					title: 'AUCTION PAYMENT TOKEN*',
+					desctiption:
+						'Select the currency you accept as payment during the auction.  If you don’t see the ERC-20 token you are looking for, input by pasting the address in the custom field.',
+				},
+				{
+					active: false,
+					top: 25,
 					title: 'IMPORT LIST',
 					desctiption:
 						'Autofill your list by uploading a .csv file with instructed format below, or enter list manually in the next step. \n\n CSV Formatting \n\n In your spreadsheet application, enter the name of your list as the filename and format the following: \n\nThe word “Address” in column 1A \n\nThe word “Amount” in column 1B \n\nAddresses and amounts in subsequent A & B columns, respectively \n\nExport from your spreadsheet application as a .CSV file and upload here',
@@ -167,9 +234,8 @@ export default {
 			coinbase: 'ethereum/coinbase',
 		}),
 		nextBtnText() {
-			if (this.tabIndex === 2) return 'Review'
-			else if (this.tabIndex === 3) return 'DEPLOY'
-			return 'Next'
+			if (this.tabIndex === 2) return 'DEPLOY'
+			return 'NEXT'
 		},
 	},
 	mounted() {

@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<validation-observer ref="observer">
+		<validation-observer v-if="!manualInputState" ref="observer">
 			<div class="form-row justify-content-center mb-4">
 				<div class="col-md-12">
 					<div class="d-flex">
@@ -16,66 +16,81 @@
 					<p class="mb-4">
 						Autofill your list by uploading a .csv file below, or create one manually.
 					</p>
-					<div
-						class="import_create_list row d-flex"
-						rules="required"
-						@focus="focusInput('importList')"
-					>
+					<div class="import_create_list row d-flex" rules="required">
 						<div class="col-md-6">
 							<div class="justify-content-center">
-								<div v-if="successFileLoad === 'ready'" class="input-file-container ready-state">
-                                    <i class="el-icon el-icon-upload"></i>
+								<div
+									v-if="successFileLoad === 'ready'"
+									class="input-file-container ready-state"
+								>
+									<i class="el-icon el-icon-upload"></i>
 									<input
 										type="file"
 										class="input-file"
-                                        accept=".csv"
+										accept=".csv"
+										rules="required"
 										@change="onFileChange"
 									/>
-                                    <div class="upload__text">
-                                        <p class="p-0">Choose or Drop a .csv</p>
-                                        <p class="p-0">file here to import list.</p>
-                                    </div>
+									<div class="upload__text mb-3">
+										<p class="p-0">Choose or Drop a .csv</p>
+										<p class="p-0">file here to import list.</p>
+									</div>
 								</div>
-								<div v-if="successFileLoad === 'success'" class="input-file-container">
-                                    <i class="el-icon el-icon-success"></i>
-                                    <div class="upload__text">
-                                        <p class="p-0">File {{fileName}} was uploaded successfully.</p>
-                                        <input
-                                        ref="fileUploadSuccess"
-										type="file"
-										class="input-file d-none"
-                                        accept=".csv"
-										@change="onFileChange"
-									/><a class="file-choose-again" @click="$refs.fileUploadSuccess.click()">User a different file</a>
-                                    </div>
+								<div
+									v-if="successFileLoad === 'success'"
+									class="input-file-container"
+								>
+									<i class="el-icon el-icon-success"></i>
+									<div class="upload__text mb-3">
+										<p class="p-0">File {{ fileName }} was uploaded successfully.</p>
+										<input
+											ref="fileUploadSuccess"
+											type="file"
+											class="input-file d-none"
+											accept=".csv"
+											@change="onFileChange"
+										/>
+										<a
+											class="file-choose-again"
+											@click="$refs.fileUploadSuccess.click()"
+										>
+											User a different file
+										</a>
+									</div>
 								</div>
 								<div v-if="successFileLoad === 'error'" class="input-file-container">
-                                    <i class="el-icon el-icon-error"></i>
-                                    <div class="upload__text">
-                                        <p class="p-0">Error in processing file {{fileName}}.</p>
-                                        <input
-                                        ref="fileUploadError"
-										type="file"
-										class="input-file d-none"
-                                        accept=".csv"
-										@change="onFileChange"
-									/><a class="file-choose-again" @click="$refs.fileUploadError.click()">User a different file</a>
-                                    </div>
+									<i class="el-icon el-icon-error"></i>
+									<div class="upload__text mb-3">
+										<p class="p-0">Error in processing file {{ fileName }}.</p>
+										<input
+											ref="fileUploadError"
+											type="file"
+											class="input-file d-none"
+											accept=".csv"
+											@change="onFileChange"
+										/>
+										<a
+											class="file-choose-again"
+											@click="$refs.fileUploadError.click()"
+										>
+											User a different file
+										</a>
+									</div>
 								</div>
 							</div>
 						</div>
 						<div class="col-md-6">
 							<div class="justify-content-center">
-                                <img src="@/assets/images/VipList.svg"/>
-                            </div>
-                        </div>
+								<img src="@/assets/images/VipList.svg" />
+							</div>
+						</div>
 					</div>
 					<div class="d-flex mt-4">
 						<p
-							class="border-bottom font-weight-bold"
+							class="border-bottom font-weight-bold cursor-pointer"
 							:class="{ 'text-white': items.importList }"
 							style="color: rgba(255, 255, 255, 0.5)"
-							@click="addPoint"
+							@click="showManualInput"
 						>
 							Create a list manually
 						</p>
@@ -83,46 +98,83 @@
 				</div>
 			</div>
 
-			<div class="form-row justify-content-center">
-                <div
-                    v-for="(point, index) in model.points"
-                    :key="index"
-                    class="col-12 d-flex justify-content-center"
-                >
+		</validation-observer>
+        <validation-observer v-else ref="manualObserver">
+			<div class="form-row justify-content-center"> 
+                <!-- style="min-height: 500px;display: block;" -->
+                <div class="col-12 d-flex">
+                    <div class="col-md-1"></div>
                     <div class="col-md-5">
-                        <base-input
-                            v-model="point.account"
-                            :label="`Account ${index + 1}`"
-                            name="Account"
-                            placeholder="Account Address"
-                            type="text"
-                            rules="required|isAddress"
-                        ></base-input>
+                        <div class="d-flex">
+                            <div class="d-inline border-bottom mb-4">
+                                <div class="font-weight-bold fs-4 mb-2 text-white">
+                                    ADDRESSES
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-5">
-                        <base-input
-                            v-model="point.amount"
-                            :label="`Amount ${index + 1}`"
-                            name="Amount"
-                            placeholder="Amount"
-                            type="number"
-                            step="0.00001"
-                            min="0"
-                            rules="required|min_value:0"
-                        ></base-input>
-                    </div>
-                    <div class="col-md-1 mt-4">
-                        <base-button
-                            type="primary"
-                            :min-width="50"
-                            @click.prevent="removePoint(index)"
-                        >
-                            -
-                        </base-button>
+                        <div class="d-flex">
+                            <div class="d-inline border-bottom mb-4">
+                                <div class="font-weight-bold fs-4 mb-2 text-white">
+                                    PURCHASE AMOUNT CAPS
+                                </div>
+                            </div>
+						</div>
                     </div>
                 </div>
-            </div>
-		</validation-observer>
+				<div
+					v-for="(point, index) in model.points"
+					:key="index"
+					class="col-12 d-flex"
+				>
+                    <div class="col-md-1 mt-2">
+                        <p class="bg-gradient-orange font-weight-bold fs-3 mb-0 py-2 radius-full text-center text-white">
+                            {{index + 1}}
+                        </p>
+                    </div>
+					<div class="col-md-5">
+						<base-input
+							v-model="point.account"
+							name="Account"
+							placeholder="Enter an address"
+							type="text"
+                            class="input-points"
+							rules="required|isAddress"
+						></base-input>
+					</div>
+					<div class="col-md-5">
+						<base-input
+							v-model="point.amount"
+							name="Amount"
+							placeholder="0.00"
+							type="number"
+                            class="input-points"
+							step="0.00001"
+							min="0"
+							rules="required|min_value:0"
+						></base-input>
+					</div>
+					<div class="col-md-1">
+                        <div v-if="index !== 0" class="cursor-pointer font-weight-bold fs-3 mb-0 py-1 text-left text-white" @click.prevent="removePoint(index)">X</div>
+					</div>
+				</div>
+                <div class="col-12 d-flex mt-3">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10">
+                        <base-button
+                            wide
+                            round
+                            class="add-another-points"
+                            :min-width="50"
+                            @click.prevent="addPoint"
+                        >
+                        ADD ANOTHER
+                        </base-button>
+                    </div>
+			    </div>
+			</div>
+        </validation-observer>
 	</div>
 </template>
 <script>
@@ -148,11 +200,13 @@ export default {
 			fileinput: '',
 			items: {
 				listOwnerAddress: false,
-				importList: true,
+				auction_payment_token: false,
+				importList: false,
 				addresses_purchaseCaps: false,
 			},
-            successFileLoad: 'ready',
-            fileName: '',
+			successFileLoad: 'ready',
+			fileName: '',
+            manualInputState: false,
 		}
 	},
 	computed: {
@@ -176,8 +230,8 @@ export default {
 						amount: childArray[childArray.length - 1],
 					}
 				})
-            this.successFileLoad = (this.fileValidate(points)) ? 'success':'error'
-			this.model.points = (this.fileValidate(points)) ? points: []
+			this.successFileLoad = this.fileValidate(points) ? 'success' : 'error'
+			this.model.points = this.fileValidate(points) ? points : []
 		},
 	},
 	mounted() {
@@ -190,14 +244,25 @@ export default {
 		selectCurrentAccount() {
 			this.model.listOwner = this.coinbase
 		},
+        showManualInput() {
+            this.model.points = [];
+            this.manualInputState = true;
+            this.addPoint();
+        },
 		addPoint() {
 			this.model.points.push({ account: '', amount: 0 })
 		},
 		onFileChange(e) {
+			this.items.listOwnerAddress = false
+			this.items.addresses_purchaseCaps = false
+			this.items.auction_payment_token = false
+			this.items.importList = true
+			this.$emit('active-focus', this.items)
+
 			const files = e.target.files || e.dataTransfer.files
 			if (!files.length) return
 			this.createInput(files[0])
-            this.fileName = files[0].name
+			this.fileName = files[0].name
 		},
 		createInput(file) {
 			const reader = new FileReader()
@@ -233,7 +298,8 @@ export default {
 			this.$router.push(url)
 		},
 		validate() {
-			return this.$refs.observer.validate().then((res) => {
+            const observer = this.manualObserver ? this.$refs.manualObserver: this.$refs.observer;
+			return observer.validate().then((res) => {
 				this.$emit('on-validated', res, this.model)
 				return res
 			})
@@ -248,9 +314,13 @@ export default {
 			}
 			this.$emit('active-focus', this.items)
 		},
-        fileValidate(points) {
-            return points.length > 0 && points[0].account.slice(0,2) === '0x' && !isNaN(Number(points[0].amount))
-        }
+		fileValidate(points) {
+			return (
+				points.length > 0 &&
+				points[0].account.slice(0, 2) === '0x' &&
+				!isNaN(Number(points[0].amount))
+			)
+		},
 	},
 }
 </script>
@@ -258,35 +328,35 @@ export default {
 <style lang="scss">
 .input-file-container {
 	position: relative;
-    background-color: transparent;
-    border: 1px dashed #d9d9d9;
-    border-radius: 6px;
-    box-sizing: border-box;
-    width: 360px;
-    height: 180px;
-    text-align: center;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
+	background-color: transparent;
+	border: 1px dashed #d9d9d9;
+	border-radius: 6px;
+	box-sizing: border-box;
+	width: auto;
+	height: auto;
+	text-align: center;
+	cursor: pointer;
+	position: relative;
+	overflow: hidden;
 }
 .input-file-container .el-icon {
-    font-size: 50px;
-    margin: 40px 0 16px;
-    line-height: 50px;
+	font-size: 50px;
+	margin: 40px 0 16px;
+	line-height: 50px;
 }
 .input-file-container .el-icon-upload {
-    color: #c0c4cc;
+	color: #c0c4cc;
 }
 .input-file-container .el-icon-success {
-    color: #169C00;
+	color: #169c00;
 }
 .input-file-container .el-icon-error {
-    color: #F5333B;
+	color: #f5333b;
 }
 .input-file-container .upload__text {
-    color: #606266;
-    font-size: 14px;
-    text-align: center;
+	color: #606266;
+	font-size: 14px;
+	text-align: center;
 }
 .input-file-trigger {
 	display: block;
@@ -308,7 +378,7 @@ export default {
 	top: 0;
 	left: 0;
 	width: 100%;
-    height: 100%;
+	height: 100%;
 	opacity: 0;
 	padding: 14px 0;
 	cursor: pointer;
@@ -327,6 +397,15 @@ export default {
 	color: #ffffff;
 }
 .input-file-container .upload__text .file-choose-again {
-    text-decoration: underline;
+	text-decoration: underline;
+}
+.add-another-points{
+    border: 2px solid #FFFFFF50;
+    background: transparent;
+}
+.input-points input {
+    border: none;
+    padding-top: 1.8rem !important;
+    padding-bottom: 1.8rem !important;
 }
 </style>

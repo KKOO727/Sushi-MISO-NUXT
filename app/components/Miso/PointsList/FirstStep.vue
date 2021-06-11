@@ -23,7 +23,7 @@
 					></base-input>
 					<div class="d-flex">
 						<p
-							class="border-bottom font-weight-bold"
+							class="border-bottom font-weight-bold cursor-pointer"
 							:class="{ 'text-white': items.listOwnerAddress }"
 							style="color: rgba(255, 255, 255, 0.5)"
 							@click="selectCurrentAccount"
@@ -37,54 +37,19 @@
 			<div class="form-row justify-content-center mb-4 pt-4">
 				<div class="col-md-12">
 					<div class="d-flex">
-						<div class="d-inline border-bottom mb-2">
+						<div class="d-inline border-bottom mb-4">
 							<div
 								class="font-weight-bold fs-4 mb-2"
-								:class="{ 'text-white': items.importList }"
+								:class="{ 'text-white': items.auction_payment_token }"
 							>
-								IMPORT OR CREATE LIST*
+								AUCTION PAYMENT TOKEN*
 							</div>
 						</div>
 					</div>
-					<p class="mb-4">
-						Autofill your list by uploading a .csv file below, or create one manually.
-					</p>
-					<div
-						class="import_create_list row d-flex"
-						rules="required"
-						@focus="focusInput('importList')"
-					>
-						<div class="col-md-6">
-							<div class="justify-content-center">
-								<div class="input-file-container">
-									<input
-										id="importCSV"
-										type="file"
-										class="input-file"
-										@change="onFileChange"
-									/>
-									<label
-										tabindex="0"
-										for="my-file"
-										class="input-file-trigger is-rounded"
-									>
-										Import the CSV
-									</label>
-								</div>
-							</div>
-						</div>
-						<div class="col-md-6"></div>
-					</div>
-					<div class="d-flex mt-4">
-						<p
-							class="border-bottom font-weight-bold"
-							:class="{ 'text-white': items.importList }"
-							style="color: rgba(255, 255, 255, 0.5)"
-							@click="addPoint"
-						>
-							Create a list manually
-						</p>
-					</div>
+					<auction-payment-token
+						:tokens-approved="auctionPaymenttokenApproved"
+						@currency-updated="updateCurrency($event)"
+					/>
 				</div>
 			</div>
 
@@ -134,11 +99,13 @@
 import { mapGetters } from 'vuex'
 import { Steps, Step } from 'element-ui'
 import { subscribeToPointListDeployedEvent } from '@/services/web3/listFactory'
+import AuctionPaymentToken from '../Auctions/Factories/AuctionPaymentToken.vue'
 
 export default {
 	components: {
 		[Steps.name]: Steps,
 		[Step.name]: Step,
+		AuctionPaymentToken,
 	},
 	props: {
 		initModel: {
@@ -151,9 +118,9 @@ export default {
 			wizardModel: null,
 			pointListAddress: null,
 			pointListDeployedEventSubscribtion: null,
-			fileinput: '',
 			items: {
 				listOwnerAddress: false,
+				auction_payment_token: false,
 				importList: false,
 				addresses_purchaseCaps: false,
 			},
@@ -167,20 +134,8 @@ export default {
 		model() {
 			return this.initModel
 		},
-	},
-	watch: {
-		fileinput() {
-			const arr = this.fileinput.split('\r\n')
-			const points = arr
-				.filter((elm) => elm !== '')
-				.map((elm) => {
-					const childArray = elm.split(',')
-					return {
-						account: childArray[0],
-						amount: childArray[childArray.length - 1],
-					}
-				})
-			this.model.points = points
+		auctionPaymenttokenApproved() {
+			return this.model.listOwner !== ''
 		},
 	},
 	mounted() {
@@ -248,6 +203,14 @@ export default {
 					this.items[key] = false
 				}
 			}
+			this.$emit('active-focus', this.items)
+		},
+		updateCurrency(currency) {
+			this.items.listOwnerAddress = false
+			this.items.importList = false
+			this.items.addresses_purchaseCaps = false
+			this.model.auction.payment_currency = currency
+			this.items.auction_payment_token = true
 			this.$emit('active-focus', this.items)
 		},
 	},
