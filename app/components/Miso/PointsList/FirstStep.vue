@@ -23,7 +23,7 @@
 					></base-input>
 					<div class="d-flex">
 						<p
-							class="border-bottom font-weight-bold"
+							class="border-bottom font-weight-bold cursor-pointer"
 							:class="{ 'text-white': items.listOwnerAddress }"
 							style="color: rgba(255, 255, 255, 0.5)"
 							@click="selectCurrentAccount"

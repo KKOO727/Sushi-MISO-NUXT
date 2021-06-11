@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<validation-observer ref="observer">
+		<validation-observer v-if="!manualInputState" ref="observer">
 			<div class="form-row justify-content-center mb-4">
 				<div class="col-md-12">
 					<div class="d-flex">
@@ -31,7 +31,7 @@
 										rules="required"
 										@change="onFileChange"
 									/>
-									<div class="upload__text">
+									<div class="upload__text mb-3">
 										<p class="p-0">Choose or Drop a .csv</p>
 										<p class="p-0">file here to import list.</p>
 									</div>
@@ -41,7 +41,7 @@
 									class="input-file-container"
 								>
 									<i class="el-icon el-icon-success"></i>
-									<div class="upload__text">
+									<div class="upload__text mb-3">
 										<p class="p-0">File {{ fileName }} was uploaded successfully.</p>
 										<input
 											ref="fileUploadSuccess"
@@ -60,7 +60,7 @@
 								</div>
 								<div v-if="successFileLoad === 'error'" class="input-file-container">
 									<i class="el-icon el-icon-error"></i>
-									<div class="upload__text">
+									<div class="upload__text mb-3">
 										<p class="p-0">Error in processing file {{ fileName }}.</p>
 										<input
 											ref="fileUploadError"
@@ -87,10 +87,10 @@
 					</div>
 					<div class="d-flex mt-4">
 						<p
-							class="border-bottom font-weight-bold"
+							class="border-bottom font-weight-bold cursor-pointer"
 							:class="{ 'text-white': items.importList }"
 							style="color: rgba(255, 255, 255, 0.5)"
-							@click="addPoint"
+							@click="showManualInput"
 						>
 							Create a list manually
 						</p>
@@ -98,46 +98,83 @@
 				</div>
 			</div>
 
-			<!-- <div class="form-row justify-content-center">
+		</validation-observer>
+        <validation-observer v-else ref="manualObserver">
+			<div class="form-row justify-content-center"> 
+                <!-- style="min-height: 500px;display: block;" -->
+                <div class="col-12 d-flex">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-5">
+                        <div class="d-flex">
+                            <div class="d-inline border-bottom mb-4">
+                                <div class="font-weight-bold fs-4 mb-2 text-white">
+                                    ADDRESSES
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="d-flex">
+                            <div class="d-inline border-bottom mb-4">
+                                <div class="font-weight-bold fs-4 mb-2 text-white">
+                                    PURCHASE AMOUNT CAPS
+                                </div>
+                            </div>
+						</div>
+                    </div>
+                </div>
 				<div
 					v-for="(point, index) in model.points"
 					:key="index"
-					class="col-12 d-flex justify-content-center"
+					class="col-12 d-flex"
 				>
+                    <div class="col-md-1 mt-2">
+                        <p class="bg-gradient-orange font-weight-bold fs-3 mb-0 py-2 radius-full text-center text-white">
+                            {{index + 1}}
+                        </p>
+                    </div>
 					<div class="col-md-5">
 						<base-input
 							v-model="point.account"
-							:label="`Account ${index + 1}`"
 							name="Account"
-							placeholder="Account Address"
+							placeholder="Enter an address"
 							type="text"
+                            class="input-points"
 							rules="required|isAddress"
 						></base-input>
 					</div>
 					<div class="col-md-5">
 						<base-input
 							v-model="point.amount"
-							:label="`Amount ${index + 1}`"
 							name="Amount"
-							placeholder="Amount"
+							placeholder="0.00"
 							type="number"
+                            class="input-points"
 							step="0.00001"
 							min="0"
 							rules="required|min_value:0"
 						></base-input>
 					</div>
-					<div class="col-md-1 mt-4">
-						<base-button
-							type="primary"
-							:min-width="50"
-							@click.prevent="removePoint(index)"
-						>
-							-
-						</base-button>
+					<div class="col-md-1">
+                        <div v-if="index !== 0" class="cursor-pointer font-weight-bold fs-3 mb-0 py-1 text-left text-white" @click.prevent="removePoint(index)">X</div>
 					</div>
 				</div>
-			</div> -->
-		</validation-observer>
+                <div class="col-12 d-flex mt-3">
+                    <div class="col-md-1"></div>
+                    <div class="col-md-10">
+                        <base-button
+                            wide
+                            round
+                            class="add-another-points"
+                            :min-width="50"
+                            @click.prevent="addPoint"
+                        >
+                        ADD ANOTHER
+                        </base-button>
+                    </div>
+			    </div>
+			</div>
+        </validation-observer>
 	</div>
 </template>
 <script>
@@ -169,6 +206,7 @@ export default {
 			},
 			successFileLoad: 'ready',
 			fileName: '',
+            manualInputState: false,
 		}
 	},
 	computed: {
@@ -206,6 +244,11 @@ export default {
 		selectCurrentAccount() {
 			this.model.listOwner = this.coinbase
 		},
+        showManualInput() {
+            this.model.points = [];
+            this.manualInputState = true;
+            this.addPoint();
+        },
 		addPoint() {
 			this.model.points.push({ account: '', amount: 0 })
 		},
@@ -255,7 +298,8 @@ export default {
 			this.$router.push(url)
 		},
 		validate() {
-			return this.$refs.observer.validate().then((res) => {
+            const observer = this.manualObserver ? this.$refs.manualObserver: this.$refs.observer;
+			return observer.validate().then((res) => {
 				this.$emit('on-validated', res, this.model)
 				return res
 			})
@@ -288,8 +332,8 @@ export default {
 	border: 1px dashed #d9d9d9;
 	border-radius: 6px;
 	box-sizing: border-box;
-	width: 360px;
-	height: 180px;
+	width: auto;
+	height: auto;
 	text-align: center;
 	cursor: pointer;
 	position: relative;
@@ -354,5 +398,14 @@ export default {
 }
 .input-file-container .upload__text .file-choose-again {
 	text-decoration: underline;
+}
+.add-another-points{
+    border: 2px solid #FFFFFF50;
+    background: transparent;
+}
+.input-points input {
+    border: none;
+    padding-top: 1.8rem !important;
+    padding-bottom: 1.8rem !important;
 }
 </style>
