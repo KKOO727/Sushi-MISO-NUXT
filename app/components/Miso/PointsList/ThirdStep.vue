@@ -50,7 +50,7 @@
 									class="btn btn-default"
 									@click.native="addtoList"
 								>
-									Add to list
+									APPROVE
 								</base-button>
 							</div>
 						</div>
