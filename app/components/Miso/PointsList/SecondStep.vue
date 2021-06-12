@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<validation-observer ref="observer">
+		<validation-observer>
 			<div class="form-row justify-content-center mb-4">
 				<div class="col-md-12">
 					<div class="d-flex">
@@ -98,7 +98,7 @@
 				</div>
 			</div>
 		</validation-observer>
-		<validation-observer v-if="manualInputState" ref="manualObserver">
+		<validation-observer v-if="manualInputState" ref="observer">
 			<div class="form-row justify-content-center">
 				<!-- style="min-height: 500px;display: block;" -->
 				<div class="col-12 d-flex">
