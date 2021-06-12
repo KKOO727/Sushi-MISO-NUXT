@@ -320,11 +320,12 @@ export default {
 			this.$router.push(url)
 		},
 		validate() {
-			const observer = this.manualInputState
-				? this.$refs.manualObserver
-				: this.$refs.observer
-			return observer.validate().then((res) => {
+            if (!this.manualInputState) {
+                return (this.model.points.length > 0);
+            }
+			return this.$refs.observer.validate().then((res) => {
 				this.$emit('on-validated', res, this.model)
+                console.log(res)
 				return res
 			})
 		},
