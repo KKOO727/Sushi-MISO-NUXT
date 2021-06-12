@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<validation-observer v-if="!manualInputState" ref="observer">
+		<validation-observer ref="observer">
 			<div class="form-row justify-content-center mb-4">
 				<div class="col-md-12">
 					<div class="d-flex">
@@ -98,7 +98,7 @@
 				</div>
 			</div>
 		</validation-observer>
-		<validation-observer v-else ref="manualObserver">
+		<validation-observer v-if="manualInputState" ref="manualObserver">
 			<div class="form-row justify-content-center">
 				<!-- style="min-height: 500px;display: block;" -->
 				<div class="col-12 d-flex">
@@ -241,7 +241,8 @@ export default {
 		},
 	},
 	watch: {
-		fileinput() {
+		fileinput(newValue) {
+            if (newValue === 'temp') return;
 			const arr = this.fileinput.split('\r\n')
 			const points = arr
 				.filter((elm) => elm !== '')
@@ -267,6 +268,8 @@ export default {
 			this.model.listOwner = this.coinbase
 		},
 		showManualInput() {
+            this.fileinput = 'temp'
+            this.successFileLoad = "ready"
 			this.model.points = []
 			this.manualInputState = true
 			this.addPoint()
@@ -285,6 +288,8 @@ export default {
 			if (!files.length) return
 			this.createInput(files[0])
 			this.fileName = files[0].name
+
+            this.manualInputState = false;
 		},
 		createInput(file) {
 			const reader = new FileReader()
@@ -325,7 +330,6 @@ export default {
             }
 			return this.$refs.observer.validate().then((res) => {
 				this.$emit('on-validated', res, this.model)
-                console.log(res)
 				return res
 			})
 		},
