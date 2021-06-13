@@ -234,7 +234,8 @@ export default {
 			coinbase: 'ethereum/coinbase',
 		}),
 		nextBtnText() {
-			if (this.tabIndex === 2) return 'DEPLOY'
+			if (this.tabIndex === 0) return 'Deploy'
+			if (this.tabIndex === 2) return 'Finish'
 			return 'NEXT'
 		},
 	},
