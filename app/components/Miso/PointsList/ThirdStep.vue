@@ -130,6 +130,11 @@ export default {
 			this.Pointslist()
 			return this.points
 		},
+        csvContent() {
+            const rows = this.model.points
+
+            return "data:text/csv;charset=utf-8," + rows.map(e => [e.account, e.amount].join(",")).join("\n");
+        }
 	},
 	methods: {
 		selectCurrentAccount() {
@@ -172,7 +177,15 @@ export default {
 			}
 		},
 		addtoList() {},
-		downloadCSV() {},
+		downloadCSV() {
+			const encodedUri = encodeURI(this.csvContent);
+			const link = document.createElement("a");
+			link.setAttribute("href", encodedUri);
+			link.setAttribute("download", "my_data.csv");
+			document.body.appendChild(link);
+
+			link.click(); 
+		},
 	},
 }
 </script>
