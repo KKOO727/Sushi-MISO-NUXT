@@ -9,6 +9,7 @@
 				</div>
 				<client-only>
 					<pointlist-wizard
+						ref="allsteps"
 						:next-button-text="nextBtnText"
 						:next-btn-loading="nextBtnLoading"
 						@update:startIndex="onTabChanged"
@@ -238,7 +239,7 @@ export default {
 			coinbase: 'ethereum/coinbase',
 		}),
 		nextBtnText() {
-			if (this.tabIndex === 0) return 'Deploy'
+			if (this.tabIndex === 0) return 'DEPLOY SETUP'
 			if (this.tabIndex === 2) return 'Finish'
 			return 'NEXT'
 		},
@@ -273,57 +274,43 @@ export default {
 			this.model = { ...this.model, ...model }
 		},
 		async deployPermissionList(ref) {
-			if (!(await this.$refs[ref].validate())) return false
+			// Validation
+			const isValid = await this.$refs[ref].validate()
+			if (!isValid) return
 
-			return new Promise((resolve) => {
-				this.nextBtnLoading = true
-				// Deploy PointsList
-				const methodToSend = this.listFactoryContract.methods.deployPointList(
-					this.model.listOwner,
-					this.model.points.map((point) => point.account),
-					this.model.points.map((point) => toWei(point.amount))
-				)
+			// Deploy PointsList
+			this.nextBtnLoading = true
+			const methodToSend = this.listFactoryContract.methods.deployPointList(
+				this.model.listOwner,
+				this.model.points.map((point) => point.account),
+				this.model.points.map((point) => toWei(point.amount))
+			)
 
-				const txHash = sendTransaction(methodToSend, {
-					from: this.coinbase,
-				})
-
-				subscribeToPointListDeployedEvent()
-					.on('data', (event) => {
-						if (txHash) {
-							console.log(txHash)
-							console.log(event)
-							// if (txHash.toLowerCase() === event.transactionHash) {
-							// 	this.pointListAddress = event.returnValues.pointList
-							// 	resolve(true)
-							// 	this.nextBtnLoading = false
-							// 	// this.changeStep()
-							// }
-						}
-					})
-					.on('error', (error) => {
-						console.log('event error:', error)
-						this.nextBtnLoading = false
-					})
-
-				// sendTransaction(methodToSend, { from: this.coinbase }, (receipt) => {
-				// 	this.nextBtnLoading = false
-				// 	console.log('----', receipt)
-				// 	if (receipt) {
-				// 		this.pointListAddress = receipt.events.returnValues.pointList
-				// 		this.transactionHash = receipt.events.returnValues.pointList
-				// 	}
-				// 	resolve(receipt.status)
-				// })
-
-				// if (txHash) {
-				// 	this.transactionHash = txHash
-				// 	// this.pointListAddress = event.returnValues.pointList
-				// 	// this.changeStep()
-				// 	resolve(true)
-				// }
-				// this.nextBtnLoading = false
+			const txHash = await sendTransaction(methodToSend, {
+				from: this.coinbase,
 			})
+
+			if (txHash) {
+				this.transactionHash = txHash
+			}
+
+			subscribeToPointListDeployedEvent()
+				.on('data', (event) => {
+					if (txHash) {
+						if (txHash.toLowerCase() === event.transactionHash) {
+							this.pointListAddress = event.returnValues.pointList
+							this.nextBtnLoading = false
+							this.changeStep()
+						}
+					}
+				})
+				.on('error', (error) => {
+					console.log('event error:', error)
+					this.nextBtnLoading = false
+				})
+		},
+		changeStep() {
+			this.$refs.allsteps.activeTabIndex++
 		},
 	},
 }
