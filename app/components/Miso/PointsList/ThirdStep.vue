@@ -30,15 +30,18 @@
 							</span>
 						</div>
 					</div>
-					<div v-for="(item, index) in pointsEntry" :key="index">
+					<div v-for="(item, index) in groupedPoints" :key="index">
 						<div class="row pl-3 pb-2 align-items-center">
 							<div class="col-4 mb-2 pl-0">
 								<span class="font-weight-bold fs-3 mb-2 text-white">
-									{{ index * 100 + 1 }} - {{ index * 100 + item }}
+									{{ item.rangeStart }} - {{ item.rangeEnd }}
 								</span>
 							</div>
 							<div class="col-4 pl-0 mb-2">
-								<span class="font-weight-bold fs-3 mb-2 text-white">
+								<span v-if="item.status" class="font-weight-bold fs-3 mb-2 text-white">
+									Approved
+								</span>
+								<span v-else class="font-weight-bold fs-3 mb-2 text-white">
 									Not Approved
 								</span>
 							</div>
@@ -48,9 +51,9 @@
 									round
 									type="default"
 									class="btn btn-default"
-									@click.native="addtoList"
+									@click.native="addtoList(index)"
 								>
-									APPROVE
+									Add to List
 								</base-button>
 							</div>
 						</div>
@@ -113,9 +116,9 @@ export default {
 			},
 			successFileLoad: 'ready',
 			fileName: '',
-			points: [],
 			addtoListLoading: false,
 			entryCounts: 0,
+            groupedPoints: [],
 		}
 	},
 	computed: {
@@ -126,16 +129,20 @@ export default {
 		model() {
 			return this.initModel
 		},
-		pointsEntry() {
-			this.Pointslist()
-			return this.points
-		},
         csvContent() {
             const rows = this.model.points
 
             return "data:text/csv;charset=utf-8," + rows.map(e => [e.account, e.amount].join(",")).join("\n");
-        }
+        },
 	},
+    watch: {
+        model: {
+            deep: true,
+            handler() {
+                this.groupedPoints = this.getGroupedPoints();
+            }
+        }
+    },
 	methods: {
 		selectCurrentAccount() {
 			this.model.listOwner = this.coinbase
@@ -163,20 +170,9 @@ export default {
 				!isNaN(Number(points[0].amount))
 			)
 		},
-		Pointslist() {
-			this.points = []
-			const _points = [...this.model.points]
-
-			while (_points.length > 0) {
-				let _bunchLength = 100
-				if (_points.length < 100) _bunchLength = _points.length
-
-				_points.splice(0, _bunchLength)
-
-				this.points.push(_bunchLength)
-			}
-		},
-		addtoList() {},
+		addtoList(index) {
+            this.$set(this.groupedPoints[index], 'status', true);
+        },
 		downloadCSV() {
 			const encodedUri = encodeURI(this.csvContent);
 			const link = document.createElement("a");
@@ -186,6 +182,29 @@ export default {
 
 			link.click(); 
 		},
+        
+        getGroupedPoints() {
+            const points = this.model.points;
+            if(points.length === 0) return;
+
+            const countByGroup = 10;
+            const grouped = [];
+
+            points.forEach((item, index) => {
+                const addIndex = Math.floor(index / countByGroup);
+
+                if(!grouped[addIndex]) {
+                    const groupItem = { rangeStart: 0, rangeEnd: 0, points: [], status: false }
+                    groupItem.rangeStart = addIndex * countByGroup + 1;
+                    grouped.push(groupItem);
+                }
+
+                grouped[addIndex].rangeEnd = index + 1;
+                grouped[addIndex].points.push(item);
+            })
+
+            return grouped;
+        }
 	},
 }
 </script>
