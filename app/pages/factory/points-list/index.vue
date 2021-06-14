@@ -13,7 +13,7 @@
 						:next-btn-loading="nextBtnLoading"
 						@update:startIndex="onTabChanged"
 					>
-						<wizard-tab :before-change="() => validateStep('step1')">
+						<wizard-tab :before-change="() => deployPermissionList('step1')">
 							<template slot="label">
 								<span class="fs-5">1</span>
 								<p>INITIAL SETUP</p>
@@ -268,22 +268,28 @@ export default {
 		onStepValidated(validated, model) {
 			this.model = { ...this.model, ...model }
 		},
-		async deployPermissionList() {
-			// Deploy PointsList
-			const methodToSend = this.listFactoryContract.methods.deployPointList(
-				this.model.listOwner,
-				this.model.points.map((point) => point.account),
-				this.model.points.map((point) => toWei(point.amount))
-			)
+		async deployPermissionList(ref) {
+			if (!(await this.$refs[ref].validate())) return false
 
-			const txHash = await sendTransaction(methodToSend, {
-				from: this.coinbase,
+			return new Promise((resolve) => {
+				this.nextBtnLoading = true
+				// Deploy PointsList
+				const methodToSend = this.listFactoryContract.methods.deployPointList(
+					this.model.listOwner,
+					this.model.points.map((point) => point.account),
+					this.model.points.map((point) => toWei(point.amount))
+				)
+
+				const txHash = sendTransaction(methodToSend, {
+					from: this.coinbase,
+				})
+
+				if (txHash) {
+					this.transactionHash = txHash
+					resolve(true)
+				}
+				this.nextBtnLoading = false
 			})
-
-			if (txHash) {
-				this.transactionHash = txHash
-			}
-			this.nextBtnLoading = false
 		},
 	},
 }
