@@ -139,7 +139,7 @@ export default {
 		},
 	},
 	mounted() {
-		this.subscribeToPointListDeployedEvent()
+		// this.subscribeToPointListDeployedEvent()
 	},
 	beforeDestroy() {
 		this.unsubscribeFromPointListDeployedEvent()
