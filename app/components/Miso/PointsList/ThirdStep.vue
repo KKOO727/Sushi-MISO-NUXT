@@ -38,20 +38,36 @@
 								</span>
 							</div>
 							<div class="col-4 pl-0 mb-2">
-								<span v-if="item.status" class="font-weight-bold fs-3 mb-2 text-white">
-									Approved
+								<span
+									v-if="item.success"
+									class="font-weight-bold fs-3 mb-2 text-white"
+								>
+									Added
 								</span>
 								<span v-else class="font-weight-bold fs-3 mb-2 text-white">
-									Not Approved
+									<span v-if="item.addStatus">Adding ...</span>
+									<span v-else>Not Added</span>
 								</span>
 							</div>
-							<div class="col-4 mb-2">
+							<div v-if="!item.success" class="col-4 mb-2">
 								<base-button
 									:loading="addtoListLoading"
 									round
 									type="default"
 									class="btn btn-default"
+									:disabled="allDisabled"
 									@click.native="addtoList(index)"
+								>
+									Add to List
+								</base-button>
+							</div>
+							<div v-else class="col-4 mb-2">
+								<base-button
+									round
+									style="opacity: 0"
+									type="default"
+									class="btn btn-default"
+									disabled="true"
 								>
 									Add to List
 								</base-button>
@@ -91,6 +107,12 @@
 <script>
 import { mapGetters } from 'vuex'
 import { Steps, Step } from 'element-ui'
+import {
+	getContractInstance,
+	subscribeToPointListDeployedEvent,
+} from '@/services/web3/listFactory'
+import { sendTransaction } from '@/services/web3/base'
+import { toNDecimals } from '@/util/index'
 
 export default {
 	components: {
@@ -118,7 +140,7 @@ export default {
 			fileName: '',
 			addtoListLoading: false,
 			entryCounts: 0,
-            groupedPoints: [],
+			groupedPoints: [],
 		}
 	},
 	computed: {
@@ -129,20 +151,30 @@ export default {
 		model() {
 			return this.initModel
 		},
-        csvContent() {
-            const rows = this.model.points
+		csvContent() {
+			const rows = this.model.points
 
-            return "data:text/csv;charset=utf-8," + rows.map(e => [e.account, e.amount].join(",")).join("\n");
-        },
+			return (
+				'data:text/csv;charset=utf-8,' +
+				rows.map((e) => [e.account, e.amount].join(',')).join('\n')
+			)
+		},
+		allDisabled() {
+			const ps = this.groupedPoints
+			return ps.filter((item) => item.addStatus).length > 0
+		},
 	},
-    watch: {
-        model: {
-            deep: true,
-            handler() {
-                this.groupedPoints = this.getGroupedPoints();
-            }
-        }
-    },
+	watch: {
+		model: {
+			deep: true,
+			handler() {
+				this.groupedPoints = this.getGroupedPoints()
+			},
+		},
+	},
+	mounted() {
+		this.listFactoryContract = getContractInstance()
+	},
 	methods: {
 		selectCurrentAccount() {
 			this.model.listOwner = this.coinbase
@@ -171,40 +203,91 @@ export default {
 			)
 		},
 		addtoList(index) {
-            this.$set(this.groupedPoints[index], 'status', true);
-        },
-		downloadCSV() {
-			const encodedUri = encodeURI(this.csvContent);
-			const link = document.createElement("a");
-			link.setAttribute("href", encodedUri);
-			link.setAttribute("download", "my_data.csv");
-			document.body.appendChild(link);
-
-			link.click(); 
+			this.$set(this.groupedPoints[index], 'addStatus', true)
+			this.addNewDeployList(this.groupedPoints[index].points, index)
 		},
-        
-        getGroupedPoints() {
-            const points = this.model.points;
-            if(points.length === 0) return;
+		async addNewDeployList(points, inx) {
+			// Deploy New contract
+			this.nextBtnLoading = true
 
-            const countByGroup = 10;
-            const grouped = [];
+			const methodToSend = this.listFactoryContract.methods.deployPointList(
+				this.model.listOwner,
+				points.map((point) => point.account),
+				points.map((point) =>
+					toNDecimals(point.amount, this.model.auction.payment_currency.decimals)
+				)
+			)
 
-            points.forEach((item, index) => {
-                const addIndex = Math.floor(index / countByGroup);
+			const txHash = await sendTransaction(methodToSend, {
+				from: this.coinbase,
+			})
 
-                if(!grouped[addIndex]) {
-                    const groupItem = { rangeStart: 0, rangeEnd: 0, points: [], status: false }
-                    groupItem.rangeStart = addIndex * countByGroup + 1;
-                    grouped.push(groupItem);
-                }
+			if (txHash) {
+				this.transactionHash = txHash
+			} else {
+				this.nextBtnLoading = false
+				this.$set(this.groupedPoints[inx], 'addStatus', false)
+			}
 
-                grouped[addIndex].rangeEnd = index + 1;
-                grouped[addIndex].points.push(item);
-            })
+			subscribeToPointListDeployedEvent()
+				.on('data', (event) => {
+					if (txHash) {
+						if (txHash.toLowerCase() === event.transactionHash) {
+							this.nextBtnLoading = false
+							this.$set(this.groupedPoints[inx], 'addStatus', false)
+							this.$set(this.groupedPoints[inx], 'success', true)
+							this.unsubscribeFromPointListDeployedEvent()
+						}
+					}
+				})
+				.on('error', (error) => {
+					console.log('event error:', error)
+					this.nextBtnLoading = false
+				})
+		},
+		unsubscribeFromPointListDeployedEvent() {
+			if (this.pointListDeployedEventSubscribtion) {
+				this.pointListDeployedEventSubscribtion.unsubscribe()
+			}
+		},
+		downloadCSV() {
+			const encodedUri = encodeURI(this.csvContent)
+			const link = document.createElement('a')
+			link.setAttribute('href', encodedUri)
+			link.setAttribute('download', 'my_data.csv')
+			document.body.appendChild(link)
 
-            return grouped;
-        }
+			link.click()
+		},
+
+		getGroupedPoints() {
+			const points = this.model.points
+			if (points.length === 0) return
+
+			const countByGroup = 10
+			const grouped = []
+
+			points.forEach((item, index) => {
+				const addIndex = Math.floor(index / countByGroup)
+
+				if (!grouped[addIndex]) {
+					const groupItem = {
+						rangeStart: 0,
+						rangeEnd: 0,
+						points: [],
+						addStatus: false,
+						success: false,
+					}
+					groupItem.rangeStart = addIndex * countByGroup + 1
+					grouped.push(groupItem)
+				}
+
+				grouped[addIndex].rangeEnd = index + 1
+				grouped[addIndex].points.push(item)
+			})
+
+			return grouped
+		},
 	},
 }
 </script>
