@@ -242,7 +242,7 @@ export default {
 	},
 	watch: {
 		fileinput(newValue) {
-            if (newValue === 'temp') return;
+			if (newValue === 'temp') return
 			const arr = this.fileinput.split('\r\n')
 			const points = arr
 				.filter((elm) => elm !== '')
@@ -258,7 +258,7 @@ export default {
 		},
 	},
 	mounted() {
-		this.subscribeToPointListDeployedEvent()
+		// this.subscribeToPointListDeployedEvent()
 	},
 	beforeDestroy() {
 		this.unsubscribeFromPointListDeployedEvent()
@@ -268,8 +268,8 @@ export default {
 			this.model.listOwner = this.coinbase
 		},
 		showManualInput() {
-            this.fileinput = 'temp'
-            this.successFileLoad = "ready"
+			this.fileinput = 'temp'
+			this.successFileLoad = 'ready'
 			this.model.points = []
 			this.manualInputState = true
 			this.addPoint()
@@ -289,7 +289,7 @@ export default {
 			this.createInput(files[0])
 			this.fileName = files[0].name
 
-            this.manualInputState = false;
+			this.manualInputState = false
 		},
 		createInput(file) {
 			const reader = new FileReader()
@@ -325,9 +325,9 @@ export default {
 			this.$router.push(url)
 		},
 		validate() {
-            if (!this.manualInputState) {
-                return (this.model.points.length > 0);
-            }
+			if (!this.manualInputState) {
+				return this.model.points.length > 0
+			}
 			return this.$refs.observer.validate().then((res) => {
 				this.$emit('on-validated', res, this.model)
 				return res

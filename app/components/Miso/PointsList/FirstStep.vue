@@ -58,7 +58,6 @@
 <script>
 import { mapGetters } from 'vuex'
 import { Steps, Step } from 'element-ui'
-import { subscribeToPointListDeployedEvent } from '@/services/web3/listFactory'
 import AuctionPaymentToken from '../Auctions/Factories/AuctionPaymentToken.vue'
 
 export default {
@@ -98,12 +97,6 @@ export default {
 			return this.model.listOwner !== ''
 		},
 	},
-	mounted() {
-		// this.subscribeToPointListDeployedEvent()
-	},
-	beforeDestroy() {
-		this.unsubscribeFromPointListDeployedEvent()
-	},
 	methods: {
 		selectCurrentAccount() {
 			this.model.listOwner = this.coinbase
@@ -126,25 +119,6 @@ export default {
 		},
 		removePoint(index) {
 			this.model.points.splice(index, 1)
-		},
-		subscribeToPointListDeployedEvent() {
-			this.pointListDeployedEventSubscribtion = subscribeToPointListDeployedEvent()
-				.on('data', (event) => {
-					if (this.transactionHash) {
-						if (this.transactionHash.toLowerCase() === event.transactionHash) {
-							this.pointListAddress = event.returnValues.pointList
-							this.changeStep()
-						}
-					}
-				})
-				.on('error', (error) => {
-					console.log('event error:', error)
-				})
-		},
-		unsubscribeFromPointListDeployedEvent() {
-			if (this.pointListDeployedEventSubscribtion) {
-				this.pointListDeployedEventSubscribtion.unsubscribe()
-			}
 		},
 		redirect(url) {
 			this.$router.push(url)
