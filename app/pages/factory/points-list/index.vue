@@ -163,7 +163,10 @@ import Notificatoin from '@/components/Miso/Factory/Liquidity/sidebarNotificatio
 import FirstStep from '@/components/Miso/PointsList/FirstStep'
 import SecondStep from '@/components/Miso/PointsList/SecondStep.vue'
 import ThirdStep from '@/components/Miso/PointsList/ThirdStep.vue'
-import { getContractInstance } from '@/services/web3/listFactory'
+import {
+	getContractInstance,
+	subscribeToPointListDeployedEvent,
+} from '@/services/web3/listFactory'
 import { sendTransaction, toWei } from '@/services/web3/base'
 
 const tokenFactoryAddress = tokenFactory.address
@@ -185,6 +188,7 @@ export default {
 			contractAddress: '',
 			deploymentFee: 0.1,
 			tabIndex: 0,
+			pointListAddress: null,
 			transactionHash: null,
 			model: {
 				listOwner: '',
@@ -284,11 +288,41 @@ export default {
 					from: this.coinbase,
 				})
 
-				if (txHash) {
-					this.transactionHash = txHash
-					resolve(true)
-				}
-				this.nextBtnLoading = false
+				subscribeToPointListDeployedEvent()
+					.on('data', (event) => {
+						if (txHash) {
+							console.log(txHash)
+							console.log(event)
+							// if (txHash.toLowerCase() === event.transactionHash) {
+							// 	this.pointListAddress = event.returnValues.pointList
+							// 	resolve(true)
+							// 	this.nextBtnLoading = false
+							// 	// this.changeStep()
+							// }
+						}
+					})
+					.on('error', (error) => {
+						console.log('event error:', error)
+						this.nextBtnLoading = false
+					})
+
+				// sendTransaction(methodToSend, { from: this.coinbase }, (receipt) => {
+				// 	this.nextBtnLoading = false
+				// 	console.log('----', receipt)
+				// 	if (receipt) {
+				// 		this.pointListAddress = receipt.events.returnValues.pointList
+				// 		this.transactionHash = receipt.events.returnValues.pointList
+				// 	}
+				// 	resolve(receipt.status)
+				// })
+
+				// if (txHash) {
+				// 	this.transactionHash = txHash
+				// 	// this.pointListAddress = event.returnValues.pointList
+				// 	// this.changeStep()
+				// 	resolve(true)
+				// }
+				// this.nextBtnLoading = false
 			})
 		},
 	},
