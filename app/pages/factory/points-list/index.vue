@@ -10,6 +10,7 @@
 				<client-only>
 					<pointlist-wizard
 						ref="allsteps"
+						:is-finished="isFinished"
 						:next-button-text="nextBtnText"
 						:next-btn-loading="nextBtnLoading"
 						@update:startIndex="onTabChanged"
@@ -278,6 +279,9 @@ export default {
 			const isValid = await this.$refs[ref].validate()
 			if (!isValid) return
 
+			// test code
+			// this.changeStep()
+
 			// Deploy PointsList
 			this.nextBtnLoading = true
 			const methodToSend = this.listFactoryContract.methods.deployPointList(
@@ -312,6 +316,7 @@ export default {
 		changeStep() {
 			this.$refs.allsteps.activeTabIndex++
 		},
+		isFinished() {},
 	},
 }
 </script>
