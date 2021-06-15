@@ -60,24 +60,38 @@
 				<div class="card-footer">
 					<slot name="footer" :next-tab="nextTab" :prev-tab="prevTab">
 						<div class="d-flex justify-content-between step">
-							<base-button
-								v-if="activeTabIndex < tabCount && activeTabIndex != 4"
-								wide
-								round
-								:type="computedButtonType"
-								:disabled="activeTabIndex === 0 || nextBtnLoading"
-								class="btn btn-previous"
-								@click.native="prevTab"
-							>
-								{{ prevButtonText }}
-							</base-button>
+							<div v-if="activeTabIndex != 0">
+								<base-button
+									v-if="activeTabIndex < tabCount && activeTabIndex != 4"
+									wide
+									round
+									:type="computedButtonType"
+									:disabled="activeTabIndex === 0 || nextBtnLoading"
+									class="btn btn-previous"
+									@click.native="prevTab"
+								>
+									{{ prevButtonText }}
+								</base-button>
+							</div>
+							<div v-else style="width: 70%">
+								<i>
+									Click this button to deploy the list owner address and auction
+									payment token. After delployment, Click ‘NEXT’ to upload list
+									content.
+								</i>
+							</div>
 							<base-button
 								v-if="activeTabIndex < tabCount && activeTabIndex !== 4"
-								:disabled="activeTabIndex === 2"
+								:disabled="nextButtonDisabled"
 								:loading="nextBtnLoading"
 								round
 								type="primary"
 								class="btn btn-next"
+								:style="
+									activeTabIndex === 0
+										? 'width: auto !important; min-width: auto !important'
+										: ''
+								"
 								@click.native="nextTab"
 							>
 								{{ nextButtonText }}
@@ -142,6 +156,10 @@ export default {
 		finishButtonText: {
 			type: String,
 			default: 'Finish',
+		},
+        nextButtonDisabled: {
+			type: Boolean,
+			default: false,
 		},
 		vertical: {
 			type: Boolean,

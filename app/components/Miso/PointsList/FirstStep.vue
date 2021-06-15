@@ -52,53 +52,12 @@
 					/>
 				</div>
 			</div>
-
-			<!-- <div class="form-row justify-content-center">
-						<div
-							v-for="(point, index) in model.points"
-							:key="index"
-							class="col-12 d-flex justify-content-center"
-						>
-							<div class="col-md-5">
-								<base-input
-									v-model="point.account"
-									:label="`Account ${index + 1}`"
-									name="Account"
-									placeholder="Account Address"
-									type="text"
-									rules="required|isAddress"
-								></base-input>
-							</div>
-							<div class="col-md-5">
-								<base-input
-									v-model="point.amount"
-									:label="`Amount ${index + 1}`"
-									name="Amount"
-									placeholder="Amount"
-									type="number"
-									step="0.00001"
-									min="0"
-									rules="required|min_value:0"
-								></base-input>
-							</div>
-							<div class="col-md-1 mt-4">
-								<base-button
-									type="primary"
-									:min-width="50"
-									@click.prevent="removePoint(index)"
-								>
-									-
-								</base-button>
-							</div>
-						</div>
-					</div> -->
 		</validation-observer>
 	</div>
 </template>
 <script>
 import { mapGetters } from 'vuex'
 import { Steps, Step } from 'element-ui'
-import { subscribeToPointListDeployedEvent } from '@/services/web3/listFactory'
 import AuctionPaymentToken from '../Auctions/Factories/AuctionPaymentToken.vue'
 
 export default {
@@ -138,12 +97,6 @@ export default {
 			return this.model.listOwner !== ''
 		},
 	},
-	mounted() {
-		// this.subscribeToPointListDeployedEvent()
-	},
-	beforeDestroy() {
-		this.unsubscribeFromPointListDeployedEvent()
-	},
 	methods: {
 		selectCurrentAccount() {
 			this.model.listOwner = this.coinbase
@@ -166,25 +119,6 @@ export default {
 		},
 		removePoint(index) {
 			this.model.points.splice(index, 1)
-		},
-		subscribeToPointListDeployedEvent() {
-			this.pointListDeployedEventSubscribtion = subscribeToPointListDeployedEvent()
-				.on('data', (event) => {
-					if (this.transactionHash) {
-						if (this.transactionHash.toLowerCase() === event.transactionHash) {
-							this.pointListAddress = event.returnValues.pointList
-							this.changeStep()
-						}
-					}
-				})
-				.on('error', (error) => {
-					console.log('event error:', error)
-				})
-		},
-		unsubscribeFromPointListDeployedEvent() {
-			if (this.pointListDeployedEventSubscribtion) {
-				this.pointListDeployedEventSubscribtion.unsubscribe()
-			}
 		},
 		redirect(url) {
 			this.$router.push(url)
