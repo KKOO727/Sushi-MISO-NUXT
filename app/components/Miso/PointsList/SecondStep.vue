@@ -224,6 +224,7 @@ export default {
 				listOwnerAddress: false,
 				auction_payment_token: false,
 				importList: false,
+				importListFailur: false,
 				addresses_purchaseCaps: false,
 			},
 			successFileLoad: 'ready',
@@ -253,8 +254,15 @@ export default {
 						amount: childArray[childArray.length - 1],
 					}
 				})
-			this.successFileLoad = this.fileValidate(points) ? 'success' : 'error'
-			this.model.points = this.fileValidate(points) ? points : []
+			if(this.fileValidate(points)) {
+			    this.focusInput('importList')
+                this.successFileLoad = 'success'
+                this.model.points = points
+            } else {
+			    this.focusInput('importListFailur')
+                this.successFileLoad = 'error'
+                this.model.points = []
+            }
 		},
 	},
 	mounted() {
@@ -281,8 +289,6 @@ export default {
 			this.items.listOwnerAddress = false
 			this.items.addresses_purchaseCaps = false
 			this.items.auction_payment_token = false
-			this.items.importList = true
-			this.$emit('active-focus', this.items)
 
 			const files = e.target.files || e.dataTransfer.files
 			if (!files.length) return

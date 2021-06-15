@@ -13,6 +13,7 @@
 						:is-finished="isFinished"
 						:next-button-text="nextBtnText"
 						:next-btn-loading="nextBtnLoading"
+                        :next-button-disabled="nextBtnDisabled"
 						@update:startIndex="onTabChanged"
 					>
 						<wizard-tab :before-change="() => deployPermissionList('step1')">
@@ -90,6 +91,7 @@
 								:active="item.active"
 								:title="item.title"
 								:description="item.desctiption"
+                                :type="item.type ? item.type: ''"
 								:top="item.top"
 							/>
 						</zoom-y-transition>
@@ -167,9 +169,9 @@ import SecondStep from '@/components/Miso/PointsList/SecondStep.vue'
 import ThirdStep from '@/components/Miso/PointsList/ThirdStep.vue'
 import {
 	getContractInstance,
-	subscribeToPointListDeployedEvent,
+	// subscribeToPointListDeployedEvent,
 } from '@/services/web3/listFactory'
-import { sendTransaction, toWei } from '@/services/web3/base'
+// import { sendTransaction, toWei } from '@/services/web3/base'
 
 const tokenFactoryAddress = tokenFactory.address
 
@@ -221,12 +223,21 @@ export default {
 					active: false,
 					top: 25,
 					title: 'IMPORT LIST',
+                    type: 'html',
 					desctiption:
-						'Autofill your list by uploading a .csv file with instructed format below, or enter list manually in the next step. \n\n CSV Formatting \n\n In your spreadsheet application, enter the name of your list as the filename and format the following: \n\nThe word “Address” in column 1A \n\nThe word “Amount” in column 1B \n\nAddresses and amounts in subsequent A & B columns, respectively \n\nExport from your spreadsheet application as a .CSV file and upload here',
+						'Autofill your list by uploading a .csv file with instructed format below, or enter list manually in the next step. \n\n CSV Formatting \n\n <ul><li>In your spreadsheet application, enter the name of your list as the filename and format the following: </li><li>The word “Address” in column 1A </li><li>The word “Amount” in column 1B </li><li>Addresses and amounts in subsequent A & B columns, respectively </li><li>Export from your spreadsheet application as a .CSV file and upload here</ul>',
 				},
 				{
 					active: false,
 					top: 25,
+					title: 'IMPORT LIST',
+                    type: 'html',
+					desctiption:
+						'Autofill your list by uploading a .csv file with instructed format below, or enter list manually in the next step. \n\n CSV Formatting \n\n <ul><li>Enter the name of your list as the filename </li><li>The word “Address” in column 1A </li><li>The word “Amount” in column 1B </li><li>Addresses and amounts in subsequent A & B columns, respectively </li><li>Export from your spreadsheet application as a .CSV file and upload here</ul>',
+				},
+				{
+					active: false,
+					top: 50,
 					title: 'ADDRESSES & PURCHASE CAPS*',
 					desctiption:
 						'Enter a wallet address, and set an amount (in tokens) this address will be able to purchase.  The criteria for who and how much is completely up to you - this list will act like a “guest list” and prevent people who are not on the list from purchasing, and/or prevent people on the list from buying more than their allotted amount.  You can have as many addresses on this list as you’d like.',
@@ -243,6 +254,10 @@ export default {
 			if (this.tabIndex === 0) return 'DEPLOY SETUP'
 			if (this.tabIndex === 2) return 'Finish'
 			return 'NEXT'
+		},
+		nextBtnDisabled() {
+			if (this.tabIndex === 2) return this.$refs.step3.allAddedToList
+			return false
 		},
 	},
 	mounted() {
@@ -280,38 +295,38 @@ export default {
 			if (!isValid) return
 
 			// test code
-			// this.changeStep()
+			this.changeStep()
 
 			// Deploy PointsList
-			this.nextBtnLoading = true
-			const methodToSend = this.listFactoryContract.methods.deployPointList(
-				this.model.listOwner,
-				this.model.points.map((point) => point.account),
-				this.model.points.map((point) => toWei(point.amount))
-			)
+			// this.nextBtnLoading = true
+			// const methodToSend = this.listFactoryContract.methods.deployPointList(
+			// 	this.model.listOwner,
+			// 	this.model.points.map((point) => point.account),
+			// 	this.model.points.map((point) => toWei(point.amount))
+			// )
 
-			const txHash = await sendTransaction(methodToSend, {
-				from: this.coinbase,
-			})
+			// const txHash = await sendTransaction(methodToSend, {
+			// 	from: this.coinbase,
+			// })
 
-			if (txHash) {
-				this.transactionHash = txHash
-			}
+			// if (txHash) {
+			// 	this.transactionHash = txHash
+			// }
 
-			subscribeToPointListDeployedEvent()
-				.on('data', (event) => {
-					if (txHash) {
-						if (txHash.toLowerCase() === event.transactionHash) {
-							this.pointListAddress = event.returnValues.pointList
-							this.nextBtnLoading = false
-							this.changeStep()
-						}
-					}
-				})
-				.on('error', (error) => {
-					console.log('event error:', error)
-					this.nextBtnLoading = false
-				})
+			// subscribeToPointListDeployedEvent()
+			// 	.on('data', (event) => {
+			// 		if (txHash) {
+			// 			if (txHash.toLowerCase() === event.transactionHash) {
+			// 				this.pointListAddress = event.returnValues.pointList
+			// 				this.nextBtnLoading = false
+			// 				this.changeStep()
+			// 			}
+			// 		}
+			// 	})
+			// 	.on('error', (error) => {
+			// 		console.log('event error:', error)
+			// 		this.nextBtnLoading = false
+			// 	})
 		},
 		changeStep() {
 			this.$refs.allsteps.activeTabIndex++

@@ -67,7 +67,7 @@
 									style="opacity: 0"
 									type="default"
 									class="btn btn-default"
-									disabled="true"
+									:disabled="true"
 								>
 									Add to List
 								</base-button>
@@ -163,6 +163,10 @@ export default {
 			const ps = this.groupedPoints
 			return ps.filter((item) => item.addStatus).length > 0
 		},
+        allAddedToList() {
+			const ps = this.groupedPoints
+			return ps.filter((item) => item.success).length !== ps.length
+        }
 	},
 	watch: {
 		model: {
@@ -259,7 +263,6 @@ export default {
 
 			link.click()
 		},
-
 		getGroupedPoints() {
 			const points = this.model.points
 			if (points.length === 0) return

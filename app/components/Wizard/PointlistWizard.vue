@@ -82,7 +82,7 @@
 							</div>
 							<base-button
 								v-if="activeTabIndex < tabCount && activeTabIndex !== 4"
-								:disabled="activeTabIndex === 2"
+								:disabled="nextButtonDisabled"
 								:loading="nextBtnLoading"
 								round
 								type="primary"
@@ -156,6 +156,10 @@ export default {
 		finishButtonText: {
 			type: String,
 			default: 'Finish',
+		},
+        nextButtonDisabled: {
+			type: Boolean,
+			default: false,
 		},
 		vertical: {
 			type: Boolean,
