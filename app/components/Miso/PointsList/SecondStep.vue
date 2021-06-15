@@ -202,7 +202,6 @@
 <script>
 import { mapGetters } from 'vuex'
 import { Steps, Step } from 'element-ui'
-import { subscribeToPointListDeployedEvent } from '@/services/web3/listFactory'
 
 export default {
 	components: {
@@ -254,22 +253,16 @@ export default {
 						amount: childArray[childArray.length - 1],
 					}
 				})
-			if(this.fileValidate(points)) {
-			    this.focusInput('importList')
-                this.successFileLoad = 'success'
-                this.model.points = points
-            } else {
-			    this.focusInput('importListFailur')
-                this.successFileLoad = 'error'
-                this.model.points = []
-            }
+			if (this.fileValidate(points)) {
+				this.focusInput('importList')
+				this.successFileLoad = 'success'
+				this.model.points = points
+			} else {
+				this.focusInput('importListFailur')
+				this.successFileLoad = 'error'
+				this.model.points = []
+			}
 		},
-	},
-	mounted() {
-		// this.subscribeToPointListDeployedEvent()
-	},
-	beforeDestroy() {
-		this.unsubscribeFromPointListDeployedEvent()
 	},
 	methods: {
 		selectCurrentAccount() {
@@ -307,25 +300,6 @@ export default {
 		},
 		removePoint(index) {
 			this.model.points.splice(index, 1)
-		},
-		subscribeToPointListDeployedEvent() {
-			this.pointListDeployedEventSubscribtion = subscribeToPointListDeployedEvent()
-				.on('data', (event) => {
-					if (this.transactionHash) {
-						if (this.transactionHash.toLowerCase() === event.transactionHash) {
-							this.pointListAddress = event.returnValues.pointList
-							this.changeStep()
-						}
-					}
-				})
-				.on('error', (error) => {
-					console.log('event error:', error)
-				})
-		},
-		unsubscribeFromPointListDeployedEvent() {
-			if (this.pointListDeployedEventSubscribtion) {
-				this.pointListDeployedEventSubscribtion.unsubscribe()
-			}
 		},
 		redirect(url) {
 			this.$router.push(url)

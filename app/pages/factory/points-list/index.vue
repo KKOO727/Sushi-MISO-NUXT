@@ -10,10 +10,9 @@
 				<client-only>
 					<pointlist-wizard
 						ref="allsteps"
-						:is-finished="isFinished"
 						:next-button-text="nextBtnText"
 						:next-btn-loading="nextBtnLoading"
-                        :next-button-disabled="nextBtnDisabled"
+						:next-button-disabled="nextBtnDisabled"
 						@update:startIndex="onTabChanged"
 					>
 						<wizard-tab :before-change="() => deployPermissionList('step1')">
@@ -91,7 +90,7 @@
 								:active="item.active"
 								:title="item.title"
 								:description="item.desctiption"
-                                :type="item.type ? item.type: ''"
+								:type="item.type ? item.type : ''"
 								:top="item.top"
 							/>
 						</zoom-y-transition>
@@ -169,9 +168,9 @@ import SecondStep from '@/components/Miso/PointsList/SecondStep.vue'
 import ThirdStep from '@/components/Miso/PointsList/ThirdStep.vue'
 import {
 	getContractInstance,
-	// subscribeToPointListDeployedEvent,
+	subscribeToPointListDeployedEvent,
 } from '@/services/web3/listFactory'
-// import { sendTransaction, toWei } from '@/services/web3/base'
+import { sendTransaction, toWei } from '@/services/web3/base'
 
 const tokenFactoryAddress = tokenFactory.address
 
@@ -223,7 +222,7 @@ export default {
 					active: false,
 					top: 25,
 					title: 'IMPORT LIST',
-                    type: 'html',
+					type: 'html',
 					desctiption:
 						'Autofill your list by uploading a .csv file with instructed format below, or enter list manually in the next step. \n\n CSV Formatting \n\n <ul><li>In your spreadsheet application, enter the name of your list as the filename and format the following: </li><li>The word “Address” in column 1A </li><li>The word “Amount” in column 1B </li><li>Addresses and amounts in subsequent A & B columns, respectively </li><li>Export from your spreadsheet application as a .CSV file and upload here</ul>',
 				},
@@ -231,7 +230,7 @@ export default {
 					active: false,
 					top: 25,
 					title: 'IMPORT LIST',
-                    type: 'html',
+					type: 'html',
 					desctiption:
 						'Autofill your list by uploading a .csv file with instructed format below, or enter list manually in the next step. \n\n CSV Formatting \n\n <ul><li>Enter the name of your list as the filename </li><li>The word “Address” in column 1A </li><li>The word “Amount” in column 1B </li><li>Addresses and amounts in subsequent A & B columns, respectively </li><li>Export from your spreadsheet application as a .CSV file and upload here</ul>',
 				},
@@ -290,48 +289,67 @@ export default {
 			this.model = { ...this.model, ...model }
 		},
 		async deployPermissionList(ref) {
-			// Validation
-			const isValid = await this.$refs[ref].validate()
-			if (!isValid) return
+			if (this.tabIndex === 2) {
+				this.resetAllvariable()
+				this.moveToFirst()
+			} else {
+				// Validation
+				const isValid = await this.$refs[ref].validate()
+				if (!isValid) return
 
-			// test code
-			this.changeStep()
+				// Deploy PointsList
+				this.nextBtnLoading = true
+				const methodToSend = this.listFactoryContract.methods.deployPointList(
+					this.model.listOwner,
+					this.model.points.map((point) => point.account),
+					this.model.points.map((point) => toWei(point.amount))
+				)
 
-			// Deploy PointsList
-			// this.nextBtnLoading = true
-			// const methodToSend = this.listFactoryContract.methods.deployPointList(
-			// 	this.model.listOwner,
-			// 	this.model.points.map((point) => point.account),
-			// 	this.model.points.map((point) => toWei(point.amount))
-			// )
+				const txHash = await sendTransaction(methodToSend, {
+					from: this.coinbase,
+				})
 
-			// const txHash = await sendTransaction(methodToSend, {
-			// 	from: this.coinbase,
-			// })
+				if (txHash) {
+					this.transactionHash = txHash
+				}
 
-			// if (txHash) {
-			// 	this.transactionHash = txHash
-			// }
-
-			// subscribeToPointListDeployedEvent()
-			// 	.on('data', (event) => {
-			// 		if (txHash) {
-			// 			if (txHash.toLowerCase() === event.transactionHash) {
-			// 				this.pointListAddress = event.returnValues.pointList
-			// 				this.nextBtnLoading = false
-			// 				this.changeStep()
-			// 			}
-			// 		}
-			// 	})
-			// 	.on('error', (error) => {
-			// 		console.log('event error:', error)
-			// 		this.nextBtnLoading = false
-			// 	})
+				subscribeToPointListDeployedEvent()
+					.on('data', (event) => {
+						if (txHash) {
+							if (txHash.toLowerCase() === event.transactionHash) {
+								this.pointListAddress = event.returnValues.pointList
+								this.nextBtnLoading = false
+								this.changeStep()
+							}
+						}
+					})
+					.on('error', (error) => {
+						console.log('event error:', error)
+						this.nextBtnLoading = false
+					})
+			}
 		},
 		changeStep() {
 			this.$refs.allsteps.activeTabIndex++
 		},
-		isFinished() {},
+		resetAllvariable() {
+			this.model = {
+				listOwner: '',
+				points: [],
+				auction: {
+					payment_currency: 'ETH',
+					customAuctionAddress: '',
+				},
+			}
+			this.contractAddress = ''
+			this.tabIndex = 0
+			this.pointListAddress = null
+			this.transactionHash = null
+		},
+		moveToFirst() {
+			this.$refs.step2.successFileLoad = 'ready'
+			this.$refs.allsteps.navigateToTab(0)
+		},
 	},
 }
 </script>

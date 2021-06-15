@@ -163,10 +163,10 @@ export default {
 			const ps = this.groupedPoints
 			return ps.filter((item) => item.addStatus).length > 0
 		},
-        allAddedToList() {
+		allAddedToList() {
 			const ps = this.groupedPoints
 			return ps.filter((item) => item.success).length !== ps.length
-        }
+		},
 	},
 	watch: {
 		model: {
@@ -233,7 +233,7 @@ export default {
 				this.$set(this.groupedPoints[inx], 'addStatus', false)
 			}
 
-			subscribeToPointListDeployedEvent()
+			this.pointListDeployedEventSubscribtion = subscribeToPointListDeployedEvent()
 				.on('data', (event) => {
 					if (txHash) {
 						if (txHash.toLowerCase() === event.transactionHash) {
@@ -267,7 +267,7 @@ export default {
 			const points = this.model.points
 			if (points.length === 0) return
 
-			const countByGroup = 10
+			const countByGroup = 100
 			const grouped = []
 
 			points.forEach((item, index) => {
