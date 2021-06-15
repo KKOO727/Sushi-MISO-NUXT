@@ -45,9 +45,18 @@ export default {
 		},
 	},
 	props: {
-		message: String,
-		title: String,
-		icon: String,
+		message: {
+			type: String,
+			default: ''
+		},
+		title: {
+			type: String,
+			default: ''
+		},
+		icon: {
+			type: String,
+			default: ''
+		},
 		verticalAlign: {
 			type: String,
 			default: 'top',
@@ -85,6 +94,7 @@ export default {
 		},
 		component: {
 			type: [Object, Function],
+			default: null,
 		},
 		showClose: {
 			type: Boolean,
@@ -94,7 +104,10 @@ export default {
 			type: Boolean,
 			default: true,
 		},
-		clickHandler: Function,
+		clickHandler: {
+			type: Function,
+			default: null,
+		},
 	},
 	data() {
 		return {
