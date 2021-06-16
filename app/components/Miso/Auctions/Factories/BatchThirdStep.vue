@@ -129,6 +129,29 @@
 							</div>
 						</div>
 					</div>
+					<div class="col-12 mb-4">
+						<div class="mb-2 fs-2">
+							<span class="font-weight-bold fs-4 border-bottom">
+								Auction Start & End*
+							</span>
+						</div>
+						<div class="">
+							<span
+								class="
+									font-weight-bold
+									text-secondary
+									white_txt
+									fs-2
+									mb-4
+									text-uppercase
+								"
+							>
+								{{ model.startDate }}
+								<br />
+								{{ model.endDate }}
+							</span>
+						</div>
+					</div>
 				</div>
 			</div>
 			<div class="col-12 mt-6">

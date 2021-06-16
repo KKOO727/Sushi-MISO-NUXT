@@ -130,7 +130,7 @@
 										@focus="focusInputBatch('startend')"
 									></el-date-picker>
 									<template #timestemp>
-										<span class="position-absolute timeZone">
+										<span class="position-absolute timeZone text-white">
 											{{ getStartTimeAbbr }}
 										</span>
 									</template>
@@ -156,7 +156,7 @@
 										@focus="focusInputBatch('startend')"
 									></el-date-picker>
 									<template #timestemp>
-										<span class="position-absolute timeZone">
+										<span class="position-absolute timeZone text-white">
 											{{ getStartTimeAbbr }}
 										</span>
 									</template>
