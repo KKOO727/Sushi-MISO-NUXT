@@ -237,6 +237,7 @@ import { toDecimals, to18Decimals } from '@/util'
 import { getContractInstance as erc20Contract } from '@/services/web3/erc20Token'
 import { misoLauncher as misoLauncherAddress } from '@/constants/contracts'
 // import { makeBatchCall } from '@/services/web3/base'
+import BigNumber from 'bignumber.js'
 import { sendTransactionAndWait } from '@/services/web3/base'
 
 export default {
@@ -316,7 +317,14 @@ export default {
 		},
 		formatedTokenBalance() {
 			if (!this.model.allowance) return 0
-			return this.model.allowance
+			if (!this.model.tokenbalance) return 0
+			if (
+				BigNumber(this.model.tokenbalance).isGreaterThan(
+					BigNumber(this.model.allowance)
+				)
+			)
+				return this.model.allowance
+			return this.model.tokenbalance
 		},
 		userLimit: {
 			get() {
@@ -407,7 +415,6 @@ export default {
 				if (receipt.status) {
 					this.user.allowance = receipt.events.Approval.returnValues[2]
 					this.model.allowance = toDecimals(this.user.allowance)
-					this.model.tokenbalance = toDecimals(this.user.allowance)
 				}
 				this.approveLoading = false
 			})

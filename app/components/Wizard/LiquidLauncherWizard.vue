@@ -150,7 +150,7 @@ export default {
 			activeTabIndex: 0,
 			tabLinkWidth: 0,
 			tabLinkHeight: 50,
-			hiddenCount: 1,
+			hiddenCount: 2,
 		}
 	},
 	computed: {
@@ -309,7 +309,7 @@ export default {
 	border-radius: 0;
 }
 .btn-next {
-	width: 127px;
+	width: auto;
 	border-radius: 0;
 }
 /**

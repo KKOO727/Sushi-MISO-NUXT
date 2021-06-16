@@ -9,7 +9,7 @@
 				<div class="fs-4 font-weight-bold text-neutral">
 					{{ title }}
 				</div>
-				<p v-if="type==='html'" class="text-neutral" v-html="description"></p>
+				<p v-if="type === 'html'" class="text-neutral" v-html="description"></p>
 				<p v-else class="text-neutral">
 					{{ description }}
 				</p>
@@ -41,7 +41,7 @@ export default {
 		type: {
 			type: String,
 			default: '',
-		}
+		},
 	},
 }
 </script>

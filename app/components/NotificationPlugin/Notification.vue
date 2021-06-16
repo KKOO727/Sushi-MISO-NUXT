@@ -47,15 +47,15 @@ export default {
 	props: {
 		message: {
 			type: String,
-			default: ''
+			default: '',
 		},
 		title: {
 			type: String,
-			default: ''
+			default: '',
 		},
 		icon: {
 			type: String,
-			default: ''
+			default: '',
 		},
 		verticalAlign: {
 			type: String,
