@@ -59,7 +59,7 @@
 							<span class="text-white ml-2">{{ tokenPrice }}</span>
 							<el-tooltip
 								:disabled="tokenPriceStatusColor !== 'bg-danger'"
-								content="Auction is only successful if token price goes above reserve price."
+								:content="tokenPriceTooltip"
 								:open-delay="200"
 								placement="top-start"
 								:effect="getTooltipEffect"
@@ -414,16 +414,42 @@ export default {
 			}`
 		},
 		tokenPriceStatusColor() {
-			if (this.status.auction === 'live' && this.type === 'dutch') {
-				if (
-					BigNumber(
-						divNumbers(this.marketInfo.commitmentsTotal, this.marketInfo.totalTokens)
-					).comparedTo(this.marketInfo.minimumPrice) < 0
-				)
-					return 'bg-danger'
-				return 'bg-success'
+			if (this.status.auction === 'live') {
+				if (this.type === 'dutch') {
+					if (
+						BigNumber(
+							divNumbers(
+								this.marketInfo.commitmentsTotal,
+								this.marketInfo.totalTokens
+							)
+						).comparedTo(this.marketInfo.minimumPrice) < 0
+					)
+						return 'bg-danger'
+					return 'bg-success'
+				}
+				if (this.type === 'batch') {
+					if (
+						BigNumber(
+							divNumbers(
+								this.marketInfo.commitmentsTotal,
+								this.marketInfo.totalTokens
+							)
+						).comparedTo(this.marketInfo.minimumCommitmentAmount) < 0
+					)
+						return 'bg-danger'
+					return 'bg-success'
+				}
 			}
 			return 'bg-none'
+		},
+		tokenPriceTooltip() {
+			if (this.type === 'dutch') {
+				return 'Auction is only successful if token price goes above reserve price.'
+			}
+			if (this.type === 'batch') {
+				return 'Auction is only successful if token price goes above minimum price.'
+			}
+			return ''
 		},
 		computedTokenImg() {
 			if (this.info.icon) {

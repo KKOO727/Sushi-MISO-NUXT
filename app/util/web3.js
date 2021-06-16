@@ -51,6 +51,10 @@ export const toNDecimals = (value, decimals) => {
 	return BigNumber(value).multipliedBy(TENPOW).toFixed()
 }
 
+export const toFixed = (value, decimals = 0, rounding = 1) => {
+	return BigNumber(value).toFixed(decimals, rounding)
+}
+
 export const toPrecision = (value, precision) => {
 	const number = BigNumber(value).toPrecision(precision)
 	return BigNumber(number).toFixed()
@@ -64,6 +68,10 @@ export const multiplyNumbers = (a, b) => {
 export const divNumbers = (a, b) => {
 	if (!a || !b) return 0
 	return BigNumber(a).dividedBy(b).toFixed()
+}
+
+export const toDecimalPlaces = (value, decimals = 5) => {
+	return BigNumber(value).decimalPlaces(Number(decimals)).toString()
 }
 
 export const zeroAddress = '0x0000000000000000000000000000000000000000'

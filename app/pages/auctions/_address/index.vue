@@ -42,12 +42,9 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import { getContractInstance as misoHelperContract } from '@/services/web3/misoHelper'
-import {
-	getContractInstance as dutchAuctionContract,
-	clearingPrice,
-} from '@/services/web3/auctions/dutch'
-import { getContractInstance as crowdsaleContract } from '@/services/web3/auctions/crowdsale'
-import { getContractInstance as batchAuctionContract } from '@/services/web3/auctions/batch'
+import { clearingPrice } from '@/services/web3/auctions/dutch'
+import { getContractInstance as getAuctionContract } from '@/services/web3/auctions/auction'
+import { getContractInstance as postAuctionLauncherContract } from '@/services/web3/postAuctionLauncher'
 import { makeBatchCall } from '@/services/web3/base'
 import { toDecimals, toPrecision, to18Decimals, toNDecimals } from '@/util/index'
 import AboutCard from '@/components/Miso/Auctions/AuctionInfo/AboutCard'
@@ -108,6 +105,8 @@ export default {
 				hasPointList: false,
 				totalTokens: 0,
 				commitmentsTotal: 0,
+				wallet: '',
+				liquidityTemplate: null,
 				finalized: 0,
 			},
 			tokenInfo: {
@@ -153,18 +152,15 @@ export default {
 		switch (parseInt(this.marketTemplateId)) {
 			case 1:
 				type = 'crowdsale'
-				this.contractInstance = crowdsaleContract(this.auctionAddress)
 				await this.setCrowdsaleData()
 				// finishAuction = this.marketInfo.totalTokensCommitted
 				break
 			case 2:
 				type = 'dutch'
-				this.contractInstance = dutchAuctionContract(this.auctionAddress)
 				await this.setDutchAuctionData()
 				break
 			case 3:
 				type = 'batch'
-				this.contractInstance = batchAuctionContract(this.auctionAddress)
 				await this.setBatchData()
 				break
 			case 4:
@@ -379,12 +375,25 @@ export default {
 		},
 
 		async getTemplateId() {
-			const methods = [{ methodName: 'marketTemplate' }]
-			const [marketTemplate] = await makeBatchCall(
-				dutchAuctionContract(this.auctionAddress),
+			const methods = [{ methodName: 'marketTemplate' }, { methodName: 'wallet' }]
+			const [marketTemplate, wallet] = await makeBatchCall(
+				getAuctionContract(this.auctionAddress),
 				methods
 			)
 			this.marketTemplateId = marketTemplate
+			this.marketInfo.wallet = wallet
+
+			// Get Liquidity Template
+			const method = [{ methodName: 'liquidityTemplate' }]
+			try {
+				const [liquidityTemplate] = await makeBatchCall(
+					postAuctionLauncherContract(wallet),
+					method
+				)
+				this.marketInfo.liquidityTemplate = Number(liquidityTemplate)
+			} catch (error) {
+				this.marketInfo.liquidityTemplate = null
+			}
 		},
 
 		finalizeAuction() {

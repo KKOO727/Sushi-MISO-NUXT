@@ -40,30 +40,12 @@
 						</p>
 					</div>
 					<div class="d-flex flex-column">
-						<template v-if="status.type === 'batch'">
-							<span class="fs-1 mb-1 text-uppercase font-weight-bold text-center">
-								Remaining:
-							</span>
-							<p class="fs-3 text-white font-weight-bold text-center">
-								{{ parseFloat(maxTokenAmount) - parseFloat(marketInfo.totalTokens) }}
-							</p>
-						</template>
-						<template v-else>
-							<span
-								class="
-									fs-1
-									mb-1
-									text-center text-uppercase
-									font-weight-bold
-									text-center
-								"
-							>
-								Remaining:
-							</span>
-							<p class="fs-3 text-white font-weight-bold text-center">
-								{{ percentRemaining }} %
-							</p>
-						</template>
+						<span class="fs-1 mb-1 text-center text-uppercase font-weight-bold">
+							Remaining:
+						</span>
+						<p class="fs-3 text-white font-weight-bold text-center">
+							{{ percentRemaining }} %
+						</p>
 					</div>
 					<div class="d-flex flex-column">
 						<span
@@ -191,8 +173,8 @@
 									</span>
 								</div>
 								<div class="font-weight-bold text-uppercase d-flex flex-column">
-									<span class="fs-1">Balance</span>
-									<span class="text-white fs-3">
+									<span class="fs-1 text-right">Balance</span>
+									<span class="text-white text-right fs-3">
 										{{ accountBalance }} {{ marketInfo.paymentCurrency.symbol }}
 									</span>
 								</div>
@@ -205,7 +187,7 @@
 									</span>
 								</div>
 								<div class="font-weight-bold text-uppercase d-flex flex-column">
-									<span class="fs-1">MAX Available</span>
+									<span class="fs-1 text-right">MAX Available</span>
 									<span class="text-white text-right fs-3">
 										{{ maxTokenAmount }} {{ textCheck(tokenInfo.symbol) }}
 									</span>
@@ -311,7 +293,10 @@
 											:round="true"
 											class="btn font-weight-bold text-uppercase fs-2 px-5"
 											:disabled="
-												selectedTokenQuantity <= 0 || isUpcoming || isBadAuction
+												selectedTokenQuantity === 'NaN' ||
+												selectedTokenQuantity <= 0 ||
+												isUpcoming ||
+												isBadAuction
 											"
 											:loading="loading"
 											@click="invest"
@@ -373,7 +358,7 @@
 							<!-- not finalized -->
 							<div v-if="!marketInfo.finalized">
 								<!-- admin privileges -->
-								<div v-if="userInfo.isAdmin">
+								<div v-if="canFinalize">
 									<div class="text-center text-white font-weight-bold fs-5">
 										Congratulations!
 									</div>
@@ -505,7 +490,7 @@
 								</div>
 							</div>
 							<div v-else>
-								<div v-if="userInfo.isAdmin">
+								<div v-if="canFinalize">
 									<div
 										v-if="!marketInfo.finalized"
 										class="withdraw d-flex justify-content-center"
@@ -545,14 +530,15 @@ import { mapGetters, mapActions } from 'vuex'
 import { sendTransactionAndWait, makeBatchCall } from '@/services/web3/base'
 import { getContractInstance as misoHelperContract } from '@/services/web3/misoHelper'
 import { getContractInstance as getAuctionContract } from '@/services/web3/auctions/auction'
+import { getContractInstance as postAuctionLauncherContract } from '@/services/web3/postAuctionLauncher'
 import { getContractInstance as erc20TokenContract } from '@/services/web3/erc20Token'
 import {
 	to18Decimals,
 	toDecimals,
 	divNumbers,
 	multiplyNumbers,
-	toPrecision,
 	toNDecimals,
+	toDecimalPlaces,
 } from '@/util'
 import BigNumber from 'bignumber.js'
 import CrowdProgress from '~/components/Miso/Auctions/Details/CrowdProgress'
@@ -616,6 +602,11 @@ export default {
 			totalParticipants: 'commitments/totalParticipants',
 		}),
 		// TODO needs to be set if user is author of auction or not
+		canFinalize() {
+			if (this.userInfo.isAdmin) return true
+			if (!this.marketInfo.liquidityTemplate) return false
+			return this.marketInfo.liquidityTemplate > 0
+		},
 		isAuthor() {
 			return false
 		},
@@ -700,16 +691,16 @@ export default {
 			return currentTimestamp < this.marketInfo.endTime
 		},
 		maxTokenAmount() {
-			return toPrecision(
+			return toDecimalPlaces(
 				Math.max(
 					0,
 					this.marketInfo.totalTokens - this.marketInfo.totalTokensCommitted
-				),
-				5
+				)
 			)
 		},
 		maxInvestAmount() {
 			if (this.status.type === 'batch') {
+				console.log('accountBalance:', this.accountBalance)
 				return this.accountBalance
 			}
 
@@ -718,15 +709,17 @@ export default {
 			)
 		},
 		percentRemaining() {
+			if (this.status.type === 'batch' && this.isLive) {
+				return 100
+			}
 			return parseFloat(
-				toPrecision(
-					divNumbers(this.maxTokenAmount, this.marketInfo.totalTokens) * 100,
-					5
+				toDecimalPlaces(
+					divNumbers(this.maxTokenAmount, this.marketInfo.totalTokens) * 100
 				)
 			)
 		},
 		totalCommitments() {
-			return toPrecision(this.marketInfo.commitmentsTotal, 3)
+			return toDecimalPlaces(this.marketInfo.commitmentsTotal)
 		},
 		tokenAmount: {
 			get() {
@@ -735,10 +728,7 @@ export default {
 						return this.marketInfo.totalTokens
 					return divNumbers(this.selectedTokenQuantity, this.marketInfo.currentPrice)
 				}
-				return toPrecision(
-					divNumbers(this.selectedTokenQuantity, this.marketInfo.currentPrice),
-					3
-				)
+				return divNumbers(this.selectedTokenQuantity, this.marketInfo.currentPrice)
 			},
 			set(val) {
 				this.userTokens = multiplyNumbers(val, this.marketInfo.currentPrice)
@@ -855,7 +845,10 @@ export default {
 				balance = await web3.eth.getBalance(this.coinbase)
 			}
 			this.accountBalance = parseFloat(
-				toPrecision(toDecimals(balance, this.marketInfo.paymentCurrency.decimals), 3)
+				toDecimalPlaces(
+					toDecimals(balance, this.marketInfo.paymentCurrency.decimals),
+					6
+				)
 			)
 		}
 		const auctionAddress = this.$route.params.address
@@ -887,8 +880,7 @@ export default {
 		},
 		async withdraw() {
 			this.loading = true
-			const contract = getAuctionContract(this.$route.params.address)
-			const method = contract.methods.withdrawTokens(this.coinbase)
+			const method = this.contractInstance.methods.withdrawTokens(this.coinbase)
 
 			await sendTransactionAndWait(method, { from: this.coinbase }, (receipt) => {
 				if (receipt.status) {
@@ -903,8 +895,18 @@ export default {
 		},
 		async finalizeAuction() {
 			this.loading = true
-			const contract = getAuctionContract(this.$route.params.address)
-			const method = contract.methods.finalize()
+
+			let method
+			if (
+				this.marketInfo.liquidityTemplate &&
+				this.marketInfo.liquidityTemplate > 0
+			) {
+				method = postAuctionLauncherContract(
+					this.marketInfo.wallet
+				).methods.finalize()
+			} else {
+				method = this.contractInstance.methods.finalize()
+			}
 
 			await sendTransactionAndWait(method, { from: this.coinbase }, (receipt) => {
 				if (receipt.status) {
@@ -956,7 +958,6 @@ export default {
 			)
 				return
 
-			const contract = getAuctionContract(this.$route.params.address)
 			this.loading = true
 			let method
 			let value = 0
@@ -964,10 +965,10 @@ export default {
 				this.marketInfo.paymentCurrency.addr ===
 				'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 			) {
-				method = contract.methods.commitEth(this.coinbase, true)
+				method = this.contractInstance.methods.commitEth(this.coinbase, true)
 				value = to18Decimals(this.selectedTokenQuantity)
 			} else {
-				method = contract.methods.commitTokens(
+				method = this.contractInstance.methods.commitTokens(
 					toNDecimals(
 						this.selectedTokenQuantity,
 						this.marketInfo.paymentCurrency.decimals
@@ -1044,13 +1045,7 @@ export default {
 		opacity: 0.8;
 	}
 }
-.upcoming-counter {
-	/* position: absolute;
-	left: 50%;
-	top: 50%;
-	transform: translate(-50%, -50%);
-	width: 100%; */
-}
+
 .center-status {
 	position: absolute;
 	left: 50%;
@@ -1201,8 +1196,6 @@ export default {
 			border-top-left-radius: 0 !important;
 			border-bottom-left-radius: 0 !important;
 		}
-	}
-	input {
 	}
 }
 </style>

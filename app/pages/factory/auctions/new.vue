@@ -499,25 +499,25 @@ export default {
 					description:
 						'Great for finding the true market value of a completely novel item',
 				},
-				// {
-				// 	title: 'Crowdsale',
-				// 	id: 1,
-				// 	disabled: false,
-				// 	icon: 'crowdsale',
-				// 	content: 'A fixed price and a fixed set of tokens.',
-				// 	description:
-				// 		'Great when the token price is already known or has been decided on previously',
-				// },
-				// {
-				// 	title: 'Batch Auction',
-				// 	id: 3,
-				// 	disabled: false,
-				// 	icon: 'batch',
-				// 	content:
-				// 		'A set amount of tokens are divided amongst all the contributors to the Market event, weighted according to their contribution to the pool.',
-				// 	description:
-				// 		'Great for projects looking to ensure that everyone taking part is rewarded',
-				// },
+				{
+					title: 'Crowdsale',
+					id: 1,
+					disabled: false,
+					icon: 'crowdsale',
+					content: 'A fixed price and a fixed set of tokens.',
+					description:
+						'Great when the token price is already known or has been decided on previously',
+				},
+				{
+					title: 'Batch Auction',
+					id: 3,
+					disabled: false,
+					icon: 'batch',
+					content:
+						'A set amount of tokens are divided amongst all the contributors to the Market event, weighted according to their contribution to the pool.',
+					description:
+						'Great for projects looking to ensure that everyone taking part is rewarded',
+				},
 			],
 			allSteps: [
 				{

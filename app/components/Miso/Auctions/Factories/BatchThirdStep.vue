@@ -143,7 +143,7 @@ import { DatePicker, TimeSelect } from 'element-ui'
 import { getContractInstance as erc20Contract } from '@/services/web3/erc20Token'
 import { misoMarket as misoMarketConfig } from '@/constants/contracts'
 import { makeBatchCall } from '@/services/web3/base'
-import { toDecimals } from '@/util'
+import { toDecimals, toDecimalPlaces, multiplyNumbers } from '@/util'
 import { duration } from '@/mixins/duration.js'
 
 export default {
@@ -220,9 +220,9 @@ export default {
 		},
 		minRaise() {
 			if (this.model.minimumCommitmentAmount !== '') {
-				return (
-					parseFloat(this.model.tokenSupply) *
-					parseFloat(this.model.minimumCommitmentAmount)
+				return toDecimalPlaces(
+					multiplyNumbers(this.model.tokenSupply, this.model.minimumCommitmentAmount),
+					this.model.paymentCurrency.decimals
 				)
 			}
 			return 0

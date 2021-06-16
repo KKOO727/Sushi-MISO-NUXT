@@ -161,7 +161,7 @@ import { DatePicker, TimeSelect } from 'element-ui'
 import { getContractInstance as erc20Contract } from '@/services/web3/erc20Token'
 import { misoMarket as misoMarketConfig } from '@/constants/contracts'
 import { makeBatchCall } from '@/services/web3/base'
-import { toDecimals } from '@/util'
+import { divNumbers, multiplyNumbers, toDecimalPlaces, toDecimals } from '@/util'
 import { duration } from '@/mixins/duration.js'
 
 export default {
@@ -239,7 +239,10 @@ export default {
 		maxRaise() {
 			if (this.model.tokenPrice > 0 && this.model.tokenSupply > 0) {
 				return (
-					parseFloat(this.model.tokenSupply) * parseFloat(this.model.tokenPrice) +
+					toDecimalPlaces(
+						multiplyNumbers(this.model.tokenSupply, this.model.tokenPrice),
+						this.model.paymentCurrency.decimals
+					) +
 					' ' +
 					this.model.paymentCurrency.symbol
 				)
@@ -252,7 +255,10 @@ export default {
 
 				if (this.model.goal > 0 && med[0] > 0) {
 					return (
-						(parseFloat(med[0]) * parseFloat(this.model.goal)) / 100 +
+						toDecimalPlaces(
+							divNumbers(multiplyNumbers(med[0], this.model.goal), 100),
+							this.model.paymentCurrency.decimals
+						) +
 						' ' +
 						this.model.paymentCurrency.symbol
 					)

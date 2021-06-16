@@ -311,11 +311,15 @@ export default {
 
 				if (txHash) {
 					this.transactionHash = txHash
+				} else {
+					this.nextBtnLoading = false
 				}
 
 				subscribeToPointListDeployedEvent()
 					.on('data', (event) => {
 						if (txHash) {
+							console.log(txHash)
+							console.log(event.transactionHash)
 							if (txHash.toLowerCase() === event.transactionHash) {
 								this.pointListAddress = event.returnValues.pointList
 								this.nextBtnLoading = false

@@ -255,6 +255,9 @@ export default {
 				this.model.tokenbalance = toDecimals(this.user.tokenBalance)
 			}
 		},
+		resetAuctionAddress() {
+			this.auctionAddress = ''
+		},
 	},
 }
 </script>

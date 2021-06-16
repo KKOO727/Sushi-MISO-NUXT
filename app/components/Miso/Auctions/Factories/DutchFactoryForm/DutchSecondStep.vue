@@ -226,7 +226,7 @@ import { DatePicker, TimeSelect } from 'element-ui'
 import { getContractInstance as erc20Contract } from '@/services/web3/erc20Token'
 import { misoMarket as misoMarketConfig } from '@/constants/contracts'
 import { makeBatchCall } from '@/services/web3/base'
-import { toDecimals } from '@/util'
+import { multiplyNumbers, toDecimalPlaces, toDecimals } from '@/util'
 import { duration } from '@/mixins/duration.js'
 import PaymentCurrency from '../PaymentCurrency.vue'
 export default {
@@ -311,7 +311,10 @@ export default {
 		maxRaise() {
 			if (this.model.startPrice !== '') {
 				return (
-					parseFloat(this.model.tokenSupply) * parseFloat(this.model.startPrice) +
+					toDecimalPlaces(
+						multiplyNumbers(this.model.tokenSupply, this.model.startPrice),
+						this.model.paymentCurrency.decimals
+					) +
 					' ' +
 					this.model.paymentCurrency.symbol
 				)
@@ -321,7 +324,10 @@ export default {
 		minRaise() {
 			if (this.model.minPrice !== '') {
 				return (
-					parseFloat(this.model.tokenSupply) * parseFloat(this.model.minPrice) +
+					toDecimalPlaces(
+						multiplyNumbers(this.model.tokenSupply, this.model.minPrice),
+						this.model.paymentCurrency.decimals
+					) +
 					' ' +
 					this.model.paymentCurrency.symbol
 				)
