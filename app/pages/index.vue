@@ -2,22 +2,22 @@
 	<div class="container-fluid container-padding">
 		<div class="row">
 			<div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
-				<div class="my-4 row">
-					<div class="col-12">
-						<div class="d-flex">
-							<img src="@/assets/images/misoBowl.png" class="bowl" />
-							<!-- p class="text-uppercase text-white misoido pt-1">Miso Ido</p -->
-							<img :src="getMisoIdo" class="misoido" />
-						</div>
-						<p class="bottom-bar">&nbsp;</p>
-					</div>
-				</div>
 				<scroll-div
 					ref="myscroll"
 					:height="scrollHeight"
 					view-class="scrolldiv"
 					:scroll="onScroll"
 				>
+					<div class="my-4 row">
+						<div class="col-12">
+							<div class="d-flex">
+								<img src="@/assets/images/misoBowl.png" class="bowl" />
+								<!-- p class="text-uppercase text-white misoido pt-1">Miso Ido</p -->
+								<img :src="getMisoIdo" class="misoido" />
+							</div>
+							<p class="bottom-bar">&nbsp;</p>
+						</div>
+					</div>
 					<landing-card
 						v-for="(cardcont, index) in cardContent"
 						:id="'landingcard' + index"
@@ -78,7 +78,10 @@
 										:class="paneCardBack"
 										@click="paneClick(index)"
 									>
-										<img :src="cardcont.logoimg" class="logo-image" />
+										<img
+											:src="getCardContentLogo(cardcont.logoimg)"
+											class="logo-image"
+										/>
 										<div class="margin-auto">
 											<div class="title">{{ cardcont.title }}</div>
 											<div class="panescript">{{ cardcont.panescript }}</div>
@@ -143,9 +146,8 @@ export default {
 			cardContentTemplate: [
 				{
 					cardimg: 'card01.jpg',
-					mobilecardimg: 'card_mobile01.png',
-					logoimg:
-						'https://github.com/manifoldfinance/boards/blob/master/256_256.png?raw=true',
+					mobilecardimg: 'card_mobile01.jpg',
+					logoimg: 'card_logo01.png',
 					title: '',
 					description: '',
 					websiteurl: '',
@@ -157,10 +159,9 @@ export default {
 					social: {},
 				},
 				{
-					cardimg: 'card02.png',
-					mobilecardimg: 'card_mobile02.png',
-					logoimg:
-						'https://github.com/manifoldfinance/boards/blob/master/256_256.png?raw=true',
+					cardimg: 'card02.jpg',
+					mobilecardimg: 'card_mobile02.jpg',
+					logoimg: 'card_logo02.png',
 					title: '',
 					description: '',
 					websiteurl: '',
@@ -172,10 +173,9 @@ export default {
 					social: {},
 				},
 				{
-					cardimg: 'card03.png',
-					mobilecardimg: 'card_mobile01.png',
-					logoimg:
-						'https://github.com/manifoldfinance/boards/blob/master/256_256.png?raw=true',
+					cardimg: 'card03.jpg',
+					mobilecardimg: 'card_mobile03.jpg',
+					logoimg: 'card_logo03.png',
 					title: '',
 					description: '',
 					websiteurl: '',
@@ -243,8 +243,8 @@ export default {
 		},
 	},
 	beforeMount() {
-		this.scrollHeight = window.innerHeight - 260
-		this.paneScrollHeight = window.innerHeight - 260
+		this.scrollHeight = window.innerHeight - 140
+		this.paneScrollHeight = window.innerHeight - 185
 		window.addEventListener('resize', this.myResize)
 	},
 	beforeDestroy() {
@@ -500,7 +500,7 @@ export default {
 			if (ind === 0) this.$refs.myscroll.scrollTo('top')
 			else if (ind === this.cardContent.length - 1) this.$refs.myscroll.scrollTo(9999)
 			else {
-				let height = 0
+				let height = 140
 				let i
 				for (i = 0; i < ind; i++) {
 					if (document.getElementById('landingcard' + i))
@@ -530,7 +530,7 @@ export default {
 
 		onScroll(e, val) {
 			let i
-			let height = 0
+			let height = 140
 			for (i = 0; i < this.cardContent.length; i++) {
 				if (document.getElementById('landingcard' + i))
 					height =
@@ -539,7 +539,7 @@ export default {
 			// height =
 			// 	height + parseInt(getComputedStyle(document.documentElement).fontSize) * 3
 			const maxScroll = height - this.$refs.myscroll.height
-			height = 0
+			height = 140
 			if (e.target.scrollTop === maxScroll)
 				this.currentpaneChanged(this.cardContent.length - 1)
 			else if (e.target.scrollTop === 0) this.currentpaneChanged(0)
@@ -558,6 +558,11 @@ export default {
 					}
 				}
 			}
+		},
+
+		getCardContentLogo(url) {
+			if (url && url.startsWith('http')) return url
+			return require('~/assets/images/' + url)
 		},
 	},
 }

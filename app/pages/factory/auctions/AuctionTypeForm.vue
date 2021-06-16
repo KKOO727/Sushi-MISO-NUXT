@@ -8,8 +8,8 @@
 			justify-content-between
 		"
 	>
-		<!-- <div v-for="option in auctionTypes" :key="option.id" class="col-lg-4"> -->
-		<div v-for="option in auctionTypes" :key="option.id" class="col-lg-12">
+		<div v-for="option in auctionTypes" :key="option.id" class="col-lg-4">
+			<!-- <div v-for="option in auctionTypes" :key="option.id" class="col-lg-12"> -->
 			<div class="d-flex flex-column align-items-center justify-content-around">
 				<svg-icon
 					:icon="option.icon"

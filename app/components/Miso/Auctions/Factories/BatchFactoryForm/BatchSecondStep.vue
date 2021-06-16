@@ -177,7 +177,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { DatePicker, TimeSelect } from 'element-ui'
 import { getContractInstance as erc20Contract } from '@/services/web3/erc20Token'
 import { makeBatchCall, sendTransactionAndWait } from '@/services/web3/base'
-import { toDecimals, to18Decimals } from '@/util'
+import { toDecimals, to18Decimals, toDecimalPlaces, multiplyNumbers } from '@/util'
 import { duration } from '@/mixins/duration.js'
 import PaymentCurrency from '../PaymentCurrency.vue'
 
@@ -262,9 +262,9 @@ export default {
 		},
 		minRaise() {
 			if (this.model.minimumCommitmentAmount !== '') {
-				return (
-					parseFloat(this.model.tokenSupply) *
-					parseFloat(this.model.minimumCommitmentAmount)
+				return toDecimalPlaces(
+					multiplyNumbers(this.model.tokenSupply, this.model.minimumCommitmentAmount),
+					this.model.paymentCurrency.decimals
 				)
 			}
 			return 0

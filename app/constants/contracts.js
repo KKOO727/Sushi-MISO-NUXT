@@ -8,6 +8,7 @@ import DUTCH_AUCTION_ABI from './abis/DutchAuction.json'
 import BATCH_AUCTION_ABI from './abis/BatchAuction.json'
 import HYPERBOLIC_AUCTION_ABI from './abis/HyperbolicAuction.json'
 import POINT_LIST_ABI from './abis/PointList.json'
+import POST_AUCTION_LAUNCHER from './abis/PostAuctionLauncher.json'
 import ERC20_ABI from './abis/ERC20.json'
 import POOL_LIQUIDITY_ABI from './abis/PoolLiquidity.json'
 import MISO_RECIPE_02_ABI from './abis/MISORecipe02.json'
@@ -93,60 +94,60 @@ export const misoMarket = {
 
 export const crowdsaleTemplate = {
 	address: {
-		1: '0x91d7D2724365dec4A1507ED44D1d823f6Fa8618D', // main
-		3: '0x91d7D2724365dec4A1507ED44D1d823f6Fa8618D', // ropsten
-		4: '0x91d7D2724365dec4A1507ED44D1d823f6Fa8618D', // rinkeby
-		42: '0x91d7D2724365dec4A1507ED44D1d823f6Fa8618D', // kovan
-		5: '0x91d7D2724365dec4A1507ED44D1d823f6Fa8618D', // goerli
+		1: '0x133108Be7022a774544b6D729e9c99DDF4870Fb9', // main
+		3: '0x133108Be7022a774544b6D729e9c99DDF4870Fb9', // ropsten
+		4: '0x133108Be7022a774544b6D729e9c99DDF4870Fb9', // rinkeby
+		42: '0x133108Be7022a774544b6D729e9c99DDF4870Fb9', // kovan
+		5: '0x133108Be7022a774544b6D729e9c99DDF4870Fb9', // goerli
 		56: '', // BSC mainnet
 		97: '0xE7CE8d3816B7b478b3527604D1C10E26a8AF6695', // BSC testnet
 		137: '', // Matic mainnet
-		80001: '0x91d7D2724365dec4A1507ED44D1d823f6Fa8618D', // Matic testnet
+		80001: '0x133108Be7022a774544b6D729e9c99DDF4870Fb9', // Matic testnet
 	},
 	abi: CROWDSALE_ABI,
 }
 
 export const dutchAuction = {
 	address: {
-		1: '0x16F0d1860538B15De8CCBF2A356067E4c1C35382', // main
-		3: '0x16F0d1860538B15De8CCBF2A356067E4c1C35382', // ropsten
-		4: '0x16F0d1860538B15De8CCBF2A356067E4c1C35382', // rinkeby
-		42: '0x16F0d1860538B15De8CCBF2A356067E4c1C35382', // kovan
-		5: '0x16F0d1860538B15De8CCBF2A356067E4c1C35382', // goerli
+		1: '0x364B7E2d5B11b9D2016D232fA271D89d5E6065f1', // main
+		3: '0x364B7E2d5B11b9D2016D232fA271D89d5E6065f1', // ropsten
+		4: '0x364B7E2d5B11b9D2016D232fA271D89d5E6065f1', // rinkeby
+		42: '0x364B7E2d5B11b9D2016D232fA271D89d5E6065f1', // kovan
+		5: '0x364B7E2d5B11b9D2016D232fA271D89d5E6065f1', // goerli
 		56: '', // BSC mainnet
 		97: '0x0d82e3fb77d5AC33a0aeE5E9a81890ffeb25c92E', // BSC testnet
 		137: '', // Matic mainnet
-		80001: '0x16F0d1860538B15De8CCBF2A356067E4c1C35382', // Matic testnet
+		80001: '0x364B7E2d5B11b9D2016D232fA271D89d5E6065f1', // Matic testnet
 	},
 	abi: DUTCH_AUCTION_ABI,
 }
 
 export const batchAuction = {
 	address: {
-		1: '0x1E00f579f64956b1bb8749Cfb34CC3B7d08B34Be', // main
-		3: '0x1E00f579f64956b1bb8749Cfb34CC3B7d08B34Be', // ropsten
-		4: '0x1E00f579f64956b1bb8749Cfb34CC3B7d08B34Be', // rinkeby
-		42: '0x1E00f579f64956b1bb8749Cfb34CC3B7d08B34Be', // kovan
-		5: '0x1E00f579f64956b1bb8749Cfb34CC3B7d08B34Be', // goerli
+		1: '0x76a4E9C8F54Fe236b42Ce9A84B4C33a6216834e4', // main
+		3: '0x76a4E9C8F54Fe236b42Ce9A84B4C33a6216834e4', // ropsten
+		4: '0x76a4E9C8F54Fe236b42Ce9A84B4C33a6216834e4', // rinkeby
+		42: '0x76a4E9C8F54Fe236b42Ce9A84B4C33a6216834e4', // kovan
+		5: '0x76a4E9C8F54Fe236b42Ce9A84B4C33a6216834e4', // goerli
 		56: '', // BSC mainnet
 		97: '0xA17375B1Ef0616577E015bfE979157306493b170', // BSC testnet
 		137: '', // Matic mainnet
-		80001: '0x1E00f579f64956b1bb8749Cfb34CC3B7d08B34Be', // Matic testnet
+		80001: '0x76a4E9C8F54Fe236b42Ce9A84B4C33a6216834e4', // Matic testnet
 	},
 	abi: BATCH_AUCTION_ABI,
 }
 
 export const hyperbolicAuction = {
 	address: {
-		1: '0x7B047A28a473c3Bf26e4c962d17b60cB4abF9Ce7', // main
-		3: '0x7B047A28a473c3Bf26e4c962d17b60cB4abF9Ce7', // ropsten
-		4: '0x7B047A28a473c3Bf26e4c962d17b60cB4abF9Ce7', // rinkeby
-		42: '0x7B047A28a473c3Bf26e4c962d17b60cB4abF9Ce7', // kovan
-		5: '0x7B047A28a473c3Bf26e4c962d17b60cB4abF9Ce7', // goerli
+		1: '0xBdc37C040456e9fE287c575EE8E06f02B479fa5a', // main
+		3: '0xBdc37C040456e9fE287c575EE8E06f02B479fa5a', // ropsten
+		4: '0xBdc37C040456e9fE287c575EE8E06f02B479fa5a', // rinkeby
+		42: '0xBdc37C040456e9fE287c575EE8E06f02B479fa5a', // kovan
+		5: '0xBdc37C040456e9fE287c575EE8E06f02B479fa5a', // goerli
 		56: '', // BSC mainnet
 		97: '0x33686b29e5a1B4fA502b0d7678C78886928FE28F', // BSC testnet
 		137: '', // Matic mainnet
-		80001: '0x7B047A28a473c3Bf26e4c962d17b60cB4abF9Ce7', // Matic testnet
+		80001: '0xBdc37C040456e9fE287c575EE8E06f02B479fa5a', // Matic testnet
 	},
 	abi: HYPERBOLIC_AUCTION_ABI,
 }
@@ -181,6 +182,10 @@ export const recipe02 = {
 
 export const pointList = {
 	abi: POINT_LIST_ABI,
+}
+
+export const postAuctionLauncher = {
+	abi: POST_AUCTION_LAUNCHER,
 }
 
 export const ERC20 = {
