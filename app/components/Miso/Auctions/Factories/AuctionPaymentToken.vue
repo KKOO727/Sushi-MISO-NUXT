@@ -173,7 +173,9 @@
 			<div class="col-md-9 p-0 pt-2">
 				<base-input
 					v-model="customToken"
+					name="Custom Token Address"
 					:disabled="loading"
+					:rules="tokenType === 'CUSTOM' ? 'required|isAddress' : ''"
 					placeholder="Search by token name, token symbol, or Enter an ERC-20 token address"
 					class="custom"
 				>
