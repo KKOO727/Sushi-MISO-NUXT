@@ -64,7 +64,9 @@ export const sendTransactionAndWait = async (method, options, callback) => {
 					return callback(receipt)
 				})
 				// eslint-disable-next-line node/handle-callback-err
-				.on('error', (error) => {})
+				.on('error', (error) => {
+					return callback(false)
+				})
 		} catch (error) {
 			if (error.code !== 4001) showErrorModal(error.message)
 			return callback(false)

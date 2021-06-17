@@ -709,8 +709,8 @@ export default {
 			)
 		},
 		percentRemaining() {
-			if (this.status.type === 'batch' && this.isLive) {
-				return 100
+			if (this.status.type === 'batch') {
+				return this.isLive ? 100 : 0
 			}
 			return parseFloat(
 				toDecimalPlaces(

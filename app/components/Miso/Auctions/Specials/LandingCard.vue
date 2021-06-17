@@ -43,12 +43,18 @@
 			<div class="d-flex">
 				<div class="position-relative logo-image-wrap">
 					<img :src="logoImage" class="logo-image" />
-					<div v-if="status.auction == 'live'" class="green-circle bg-success"></div>
 				</div>
 				<nuxt-link :to="`/auctions/${auction}`" tag="div" class="cursor-pointer">
 					<div class="text-white pl-3">
 						<div>
-							<span class="title">{{ title }}</span>
+							<span v-if="status.auction == 'live'" class="title">
+								{{ title }}
+								<i class="fas fa-circle color-success"></i>
+							</span>
+							<span v-else class="title">
+								{{ title }}
+								<i class="fas fa-circle color-orange"></i>
+							</span>
 						</div>
 						<div class="text-uppercase raise-target">
 							{{ raisedTargetLabel }}
@@ -80,8 +86,7 @@
 					target="_blank"
 				>
 					<i class="fas fa-globe"></i>
-					<span class="pl-1">{{ websiteURL }}</span>
-					&nbsp;
+					<span class="px-1">{{ websiteURL }}</span>
 				</a>
 				<a
 					v-for="(item, index) in social"
@@ -91,9 +96,8 @@
 					target="_blank"
 				>
 					<nobr>
-						<i :class="icons[index]" class="pl-1" />
-						<span>{{ index }}</span>
-						&nbsp;
+						<i :class="icons[index]" />
+						<span class="pl-1 pr-2">{{ index }}</span>
 					</nobr>
 				</a>
 			</div>
@@ -1300,5 +1304,17 @@ export default {
 .mobile-card-image {
 	width: 100%;
 	padding: 1rem;
+}
+
+.color-success {
+	color: #95ce22 !important;
+	font-size: 12px;
+	vertical-align: middle;
+}
+
+.color-orange {
+	color: #ffa500 !important;
+	font-size: 12px;
+	vertical-align: middle;
 }
 </style>

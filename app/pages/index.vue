@@ -7,8 +7,9 @@
 					:height="scrollHeight"
 					view-class="scrolldiv"
 					:scroll="onScroll"
+					class="mt-3"
 				>
-					<div class="my-4 row">
+					<div id="misoido" class="mt-1 mb-4 row">
 						<div class="col-12">
 							<div class="d-flex">
 								<img src="@/assets/images/misoBowl.png" class="bowl" />
@@ -145,6 +146,20 @@ export default {
 			cardContent: [],
 			cardContentTemplate: [
 				{
+					cardimg: 'card03.jpg',
+					mobilecardimg: 'card_mobile03.jpg',
+					logoimg: 'card_logo03.png',
+					title: '',
+					description: '',
+					websiteurl: '',
+					auction: '',
+					deaddate: '',
+					panescript: '',
+					type: '',
+					status: 'upcoming',
+					social: {},
+				},
+				{
 					cardimg: 'card01.jpg',
 					mobilecardimg: 'card_mobile01.jpg',
 					logoimg: 'card_logo01.png',
@@ -162,20 +177,6 @@ export default {
 					cardimg: 'card02.jpg',
 					mobilecardimg: 'card_mobile02.jpg',
 					logoimg: 'card_logo02.png',
-					title: '',
-					description: '',
-					websiteurl: '',
-					auction: '',
-					deaddate: '',
-					panescript: '',
-					type: '',
-					status: 'upcoming',
-					social: {},
-				},
-				{
-					cardimg: 'card03.jpg',
-					mobilecardimg: 'card_mobile03.jpg',
-					logoimg: 'card_logo03.png',
 					title: '',
 					description: '',
 					websiteurl: '',
@@ -243,8 +244,8 @@ export default {
 		},
 	},
 	beforeMount() {
-		this.scrollHeight = window.innerHeight - 140
-		this.paneScrollHeight = window.innerHeight - 185
+		this.scrollHeight = window.innerHeight - 174 // misoido height: 86
+		this.paneScrollHeight = window.innerHeight - 212 // mt-5: 48
 		window.addEventListener('resize', this.myResize)
 	},
 	beforeDestroy() {
@@ -492,15 +493,16 @@ export default {
 		},
 
 		myResize() {
-			this.scrollHeight = window.innerHeight - 260
-			this.paneScrollHeight = window.innerHeight - 260
+			this.scrollHeight = window.innerHeight - 174 // misoido height: 86
+			this.paneScrollHeight = window.innerHeight - 212 // mt-5: 48
 		},
 
 		paneClick(ind) {
 			if (ind === 0) this.$refs.myscroll.scrollTo('top')
-			else if (ind === this.cardContent.length - 1) this.$refs.myscroll.scrollTo(9999)
+			else if (ind === this.cardContent.length - 1)
+				this.$refs.myscroll.scrollTo(99999)
 			else {
-				let height = 140
+				let height = 86
 				let i
 				for (i = 0; i < ind; i++) {
 					if (document.getElementById('landingcard' + i))
@@ -530,7 +532,7 @@ export default {
 
 		onScroll(e, val) {
 			let i
-			let height = 140
+			let height = 86
 			for (i = 0; i < this.cardContent.length; i++) {
 				if (document.getElementById('landingcard' + i))
 					height =
@@ -539,10 +541,10 @@ export default {
 			// height =
 			// 	height + parseInt(getComputedStyle(document.documentElement).fontSize) * 3
 			const maxScroll = height - this.$refs.myscroll.height
-			height = 140
+			height = 86
 			if (e.target.scrollTop === maxScroll)
 				this.currentpaneChanged(this.cardContent.length - 1)
-			else if (e.target.scrollTop === 0) this.currentpaneChanged(0)
+			else if (e.target.scrollTop <= height) this.currentpaneChanged(0)
 			else {
 				// height = parseInt(getComputedStyle(document.documentElement).fontSize) * 3
 				for (i = 0; i < this.cardContent.length - 1; i++) {

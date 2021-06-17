@@ -3,10 +3,44 @@
 		<validation-observer>
 			<div class="form-row justify-content-center mb-4">
 				<div class="col-md-12">
+					<div class="pb-3 d-line d-flex">
+						<h5
+							class="
+								fs-4
+								font-weight-bold
+								text-uppercase
+								mb-0
+								border-bottom
+								text-white
+							"
+						>
+							Permission List Address:
+						</h5>
+					</div>
+					<div class="pb-4 d-flex align-items-center">
+						<p class="font-weight-bold text-white text-uppercase fs-3 mb-0">
+							{{ model.pointListAddress | truncate(6) }}
+						</p>
+						<div class="copy-box d-flex align-items-center ml-2">
+							<div class="copy-box_icon">
+								<svg-icon
+									class="cursor-pointer"
+									icon="copy"
+									height="20"
+									width="20"
+									color="#F46E41"
+									:fill="false"
+									@click="copyToClipboard(model.pointListAddress)"
+								/>
+							</div>
+							<span class="font-weight-bolder text-white fs-2 pl-1">copy</span>
+						</div>
+					</div>
+
 					<div class="d-flex">
 						<div class="d-inline border-bottom mb-2">
 							<div
-								class="font-weight-bold fs-4 mb-2"
+								class="font-weight-bold fs-4 mb-0"
 								:class="{ 'text-white': items.importList }"
 							>
 								IMPORT OR CREATE LIST*
@@ -216,8 +250,6 @@ export default {
 	},
 	data() {
 		return {
-			pointListAddress: null,
-			pointListDeployedEventSubscribtion: null,
 			fileinput: '',
 			items: {
 				listOwnerAddress: false,
@@ -330,6 +362,17 @@ export default {
 				!isNaN(Number(points[0].amount))
 			)
 		},
+		// copy data to clipboard on click & display message
+		copyToClipboard(value) {
+			navigator.clipboard.writeText(value).then(() => {
+				this.$notify({
+					type: 'success',
+					verticalAlign: 'bottom',
+					horizontalAlign: 'right',
+					message: 'successfully copied to clipboard!',
+				})
+			})
+		},
 	},
 }
 </script>
@@ -416,5 +459,41 @@ export default {
 	border: none;
 	padding-top: 1.8rem !important;
 	padding-bottom: 1.8rem !important;
+}
+.copy-box {
+	padding: 4px 6px;
+	position: relative;
+	span {
+		z-index: 2;
+		opacity: 0;
+		transition: all 0.3s ease-in;
+	}
+	svg {
+		position: relative;
+		z-index: 2;
+	}
+	&_icon::after {
+		position: absolute;
+		border-radius: 2px;
+		content: '';
+		transition: all 0.3s ease-in;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background: transparent;
+	}
+	&_icon:hover {
+		& ~ span {
+			opacity: 1;
+			transition: all 0.3s ease-in;
+		}
+		&:after {
+			content: '';
+			opacity: 1;
+			background: #111b47;
+			transition: all 0.3s ease-in;
+		}
+	}
 }
 </style>
