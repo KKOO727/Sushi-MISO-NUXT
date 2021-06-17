@@ -3,6 +3,43 @@
 		<validation-observer ref="observer">
 			<div class="form-row justify-content-center mb-5">
 				<div class="col-md-12">
+					<div class="pb-3 d-line d-flex">
+						<h5
+							class="
+								fs-4
+								font-weight-bold
+								text-uppercase
+								mb-0
+								border-bottom
+								text-white
+							"
+						>
+							Permission List Address:
+						</h5>
+					</div>
+					<div class="pb-4 d-flex align-items-center">
+						<p class="font-weight-bold text-white text-uppercase fs-3 mb-0">
+							{{ model.pointListAddress | truncate(6) }}
+						</p>
+						<div class="copy-box d-flex align-items-center ml-2">
+							<div class="copy-box_icon">
+								<svg-icon
+									class="cursor-pointer"
+									icon="copy"
+									height="20"
+									width="20"
+									color="#F46E41"
+									:fill="false"
+									@click="copyToClipboard(model.pointListAddress)"
+								/>
+							</div>
+							<span class="font-weight-bolder text-white fs-2 pl-1">copy</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-row justify-content-center mb-5">
+				<div class="col-md-12">
 					<div class="d-flex mb-4">
 						<div class="d-inline border-bottom mb-2">
 							<div class="font-weight-bold fs-4 mb-2 text-white">OWNER ADDRESS</div>
@@ -107,12 +144,9 @@
 <script>
 import { mapGetters } from 'vuex'
 import { Steps, Step } from 'element-ui'
-import {
-	getContractInstance,
-	subscribeToPointListDeployedEvent,
-} from '@/services/web3/listFactory'
-import { sendTransaction } from '@/services/web3/base'
+import { sendTransactionAndWait } from '@/services/web3/base'
 import { toNDecimals } from '@/util/index'
+import { getContractInstance as pointListContract } from '@/services/web3/pointList'
 
 export default {
 	components: {
@@ -127,7 +161,6 @@ export default {
 	},
 	data() {
 		return {
-			pointListAddress: null,
 			pointListDeployedEventSubscribtion: null,
 			fileinput: '',
 			items: {
@@ -176,9 +209,6 @@ export default {
 			},
 		},
 	},
-	mounted() {
-		this.listFactoryContract = getContractInstance()
-	},
 	methods: {
 		selectCurrentAccount() {
 			this.model.listOwner = this.coinbase
@@ -211,48 +241,29 @@ export default {
 			this.addNewDeployList(this.groupedPoints[index].points, index)
 		},
 		async addNewDeployList(points, inx) {
-			// Deploy New contract
+			// add new user list to deployed point list address
 			this.nextBtnLoading = true
 
-			const methodToSend = this.listFactoryContract.methods.deployPointList(
-				this.model.listOwner,
+			const methodToAdd = pointListContract(
+				this.model.pointListAddress
+			).methods.setPoints(
 				points.map((point) => point.account),
 				points.map((point) =>
 					toNDecimals(point.amount, this.model.auction.payment_currency.decimals)
 				)
 			)
 
-			const txHash = await sendTransaction(methodToSend, {
-				from: this.coinbase,
-			})
-
-			if (txHash) {
-				this.transactionHash = txHash
-			} else {
-				this.nextBtnLoading = false
-				this.$set(this.groupedPoints[inx], 'addStatus', false)
-			}
-
-			this.pointListDeployedEventSubscribtion = subscribeToPointListDeployedEvent()
-				.on('data', (event) => {
-					if (txHash) {
-						if (txHash.toLowerCase() === event.transactionHash) {
-							this.nextBtnLoading = false
-							this.$set(this.groupedPoints[inx], 'addStatus', false)
-							this.$set(this.groupedPoints[inx], 'success', true)
-							this.unsubscribeFromPointListDeployedEvent()
-						}
+			await sendTransactionAndWait(
+				methodToAdd,
+				{ from: this.coinbase },
+				(receipt) => {
+					if (receipt.status) {
+						this.$set(this.groupedPoints[inx], 'success', true)
 					}
-				})
-				.on('error', (error) => {
-					console.log('event error:', error)
 					this.nextBtnLoading = false
-				})
-		},
-		unsubscribeFromPointListDeployedEvent() {
-			if (this.pointListDeployedEventSubscribtion) {
-				this.pointListDeployedEventSubscribtion.unsubscribe()
-			}
+					this.$set(this.groupedPoints[inx], 'addStatus', false)
+				}
+			)
 		},
 		downloadCSV() {
 			const encodedUri = encodeURI(this.csvContent)
@@ -290,6 +301,17 @@ export default {
 			})
 
 			return grouped
+		},
+		// copy data to clipboard on click & display message
+		copyToClipboard(value) {
+			navigator.clipboard.writeText(value).then(() => {
+				this.$notify({
+					type: 'success',
+					verticalAlign: 'bottom',
+					horizontalAlign: 'right',
+					message: 'successfully copied to clipboard!',
+				})
+			})
 		},
 	},
 }
@@ -368,5 +390,41 @@ export default {
 }
 .input-file-container .upload__text .file-choose-again {
 	text-decoration: underline;
+}
+.copy-box {
+	padding: 4px 6px;
+	position: relative;
+	span {
+		z-index: 2;
+		opacity: 0;
+		transition: all 0.3s ease-in;
+	}
+	svg {
+		position: relative;
+		z-index: 2;
+	}
+	&_icon::after {
+		position: absolute;
+		border-radius: 2px;
+		content: '';
+		transition: all 0.3s ease-in;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background: transparent;
+	}
+	&_icon:hover {
+		& ~ span {
+			opacity: 1;
+			transition: all 0.3s ease-in;
+		}
+		&:after {
+			content: '';
+			opacity: 1;
+			background: #111b47;
+			transition: all 0.3s ease-in;
+		}
+	}
 }
 </style>
