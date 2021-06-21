@@ -847,8 +847,8 @@ audio,
 iframe,
 embed,
 object {
-	display: block;
 	vertical-align: middle;
+	display: flex;
 }
 .p-px {
 	padding: 1px !important;
@@ -871,6 +871,7 @@ object {
 	padding: 1.5rem !important;
 }
 .bg-dark-900 {
+	max-height: 89vh;
 	--tw-bg-opacity: 1 !important;
 	background-color: #050f39 !important;
 }
