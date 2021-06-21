@@ -159,11 +159,23 @@
 				<base-input
 					v-model="model.pointListAddress"
 					name="List Owner"
-					class="text-white"
+                    :input-classes="'text-white'"
 					placeholder="List Owner Address"
 					type="text"
 					:disabled="true"
-				></base-input>
+				>
+                    <template slot="infoBlock">
+                        <svg-icon
+                            class="cursor-pointer copy-icon"
+                            icon="copy"
+                            height="20"
+                            width="20"
+                            color="#F46E41"
+                            :fill="false"
+                            @click="copyToClipboard(model.pointListAddress)"
+                        />
+                    </template>
+                </base-input>
 				<div class="d-flex">
 					<a
 						class="d-block border-bottom font-weight-bold cursor-pointer text-white"
@@ -189,7 +201,7 @@
 						:to="{
 							path: `/auctions/live`,
 						}"
-						class="btn btn-default bg-transparent"
+						class="btn btn-default bg-transparent border-2"
 						type="default"
 					>
 						Go To Marketplace
@@ -290,7 +302,7 @@ export default {
 						'Enter a wallet address, and set an amount (in tokens) this address will be able to purchase.  The criteria for who and how much is completely up to you - this list will act like a “guest list” and prevent people who are not on the list from purchasing, and/or prevent people on the list from buying more than their allotted amount.  You can have as many addresses on this list as you’d like.',
 				},
 			],
-			showModal: false,
+			showModal: true,
 			modalProps: {
 				gradient: 'primary',
 				modalContentClasses: 'rounded',
@@ -403,6 +415,28 @@ export default {
 			this.$refs.step2.successFileLoad = 'ready'
 			this.$refs.allsteps.navigateToTab(0)
 		},
+		copyToClipboard(value) {
+			navigator.clipboard.writeText(value).then(() => {
+				this.$notify({
+					type: 'success',
+					verticalAlign: 'bottom',
+					horizontalAlign: 'right',
+					message: 'successfully copied to clipboard!',
+				})
+			})
+		},
 	},
 }
 </script>
+<style scoped>
+    .copy-icon{
+        position: absolute;
+        right: 10px;
+        top: 10px;
+    }
+</style>
+<style>
+    .bg-transparent{
+        background: transparent !important;
+    }
+</style>
