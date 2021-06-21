@@ -92,7 +92,7 @@
 										? 'width: auto !important; min-width: auto !important'
 										: ''
 								"
-								@click.native="nextTab"
+								@click.native="nextTab();showModal=true"
 							>
 								{{ nextButtonText }}
 							</base-button>
@@ -102,9 +102,43 @@
 				</div>
 			</form>
 		</div>
+        <modal :show.sync="showModal" v-bind="modalProps">
+            <div class="bg-dark-900 h-full p-6 rounded">
+				<h3>List Contract Address</h3>
+                <base-input
+                    v-model="token"
+                    name="List Owner"
+                    placeholder="List Owner Address"
+                    type="text"
+                ></base-input>
+                <div class="d-flex">
+                    <p
+                        class="border-bottom font-weight-bold cursor-pointer text-white"
+                        style="color: rgba(255, 255, 255, 0.5)"
+                    >
+                        View On Etherscan
+                    </p>
+                </div>
+                <base-divider class="mt-5 mb-3" />
+                <div>
+                    <h4>Note</h4>
+                    <span class="text-light">In order to enable this list, Go to your auction, click ‘Edit’, and then copy and paste this address in the permission list input field.</span>
+                </div>
+                <div class="text-center">
+                    <base-button
+                        round
+                        type="default"
+                        class="btn btn-default bg-transparent"
+                    >
+                    Go To Marketplace
+                </base-button>
+                </div>
+            </div>
+        </modal>
 	</div>
 </template>
 <script>
+import { BaseDivider, Modal } from '@/components'
 import { throttle } from './throttle'
 
 export default {
@@ -121,6 +155,7 @@ export default {
 				return h('span', [props.tab.$slots.label, props.tab.label])
 			},
 		},
+        Modal, BaseDivider
 	},
 	provide() {
 		return {
@@ -172,6 +207,13 @@ export default {
 			tabLinkWidth: 0,
 			tabLinkHeight: 50,
 			hiddenCount: 0,
+            showModal: true,
+            modalProps: {
+                gradient: 'primary',
+                modalContentClasses: 'rounded',
+                bodyClasses: 'p-px',
+            },
+            token: ''
 		}
 	},
 	computed: {
