@@ -152,12 +152,57 @@
 				</div>
 			</div>
 		</div>
+
+		<modal :show.sync="showModal" v-bind="modalProps">
+			<div class="bg-dark-900 h-full p-6 rounded">
+				<h3>List Contract Address</h3>
+				<base-input
+					v-model="model.pointListAddress"
+					name="List Owner"
+					class="text-white"
+					placeholder="List Owner Address"
+					type="text"
+					:disabled="true"
+				></base-input>
+				<div class="d-flex">
+					<a
+						class="d-block border-bottom font-weight-bold cursor-pointer text-white"
+						:href="`${explorer.root}${explorer.tx}${transactionHash}`"
+						style="color: rgba(255, 255, 255, 0.5)"
+						target="blank"
+					>
+						View On Etherscan
+					</a>
+				</div>
+				<base-divider class="mt-5 mb-3" />
+				<div>
+					<h4>Note</h4>
+					<span class="text-light">
+						In order to enable this list, Go to your auction, click ‘Edit’, and then
+						copy and paste this address in the permission list input field.
+					</span>
+				</div>
+				<div class="text-center">
+					<base-button
+						round
+						tag="nuxt-link"
+						:to="{
+							path: `/auctions/live`,
+						}"
+						class="btn btn-default bg-transparent"
+						type="default"
+					>
+						Go To Marketplace
+					</base-button>
+				</div>
+			</div>
+		</modal>
 	</div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
-import { BaseDivider, PointlistWizard, WizardTab } from '@/components'
+import { BaseDivider, PointlistWizard, WizardTab, Modal } from '@/components'
 import { tokenFactory } from '@/constants/contracts'
 import { Vue } from 'vue-property-decorator'
 import { ZoomYTransition } from 'vue2-transitions'
@@ -181,6 +226,7 @@ export default {
 		FirstStep,
 		SecondStep,
 		ThirdStep,
+		Modal,
 	},
 	layout: 'DashboardLayout',
 	data() {
@@ -244,12 +290,19 @@ export default {
 						'Enter a wallet address, and set an amount (in tokens) this address will be able to purchase.  The criteria for who and how much is completely up to you - this list will act like a “guest list” and prevent people who are not on the list from purchasing, and/or prevent people on the list from buying more than their allotted amount.  You can have as many addresses on this list as you’d like.',
 				},
 			],
+			showModal: false,
+			modalProps: {
+				gradient: 'primary',
+				modalContentClasses: 'rounded',
+				bodyClasses: 'p-px',
+			},
 		}
 	},
 	computed: {
 		...mapGetters({
 			currentProvidersNetworkId: 'ethereum/currentProvidersNetworkId',
 			coinbase: 'ethereum/coinbase',
+			explorer: 'ethereum/explorer',
 		}),
 		nextBtnText() {
 			if (this.tabIndex === 0) return 'DEPLOY SETUP'
@@ -292,8 +345,9 @@ export default {
 		},
 		async deployPermissionList(ref) {
 			if (this.tabIndex === 2) {
-				this.resetAllvariable()
-				this.moveToFirst()
+				// this.resetAllvariable()
+				// this.moveToFirst()
+				this.showModal = true
 			} else {
 				// Validation
 				const isValid = await this.$refs[ref].validate()
@@ -312,6 +366,8 @@ export default {
 					{ from: this.coinbase },
 					(receipt) => {
 						if (receipt.status) {
+							// console.log(receipt)
+							this.transactionHash = receipt.transactionHash
 							this.model.pointListAddress =
 								receipt.events.PointListDeployed.returnValues.addr
 							this.changeStep()
