@@ -155,32 +155,32 @@
 
 		<modal :show.sync="showModal" v-bind="modalProps">
 			<div class="bg-dark-900 h-full p-6 rounded">
-				<h3>List Contract Address</h3>
+				<h3 class="fs-6 font-bold text-white">List Contract Address</h3>
 				<base-input
 					v-model="model.pointListAddress"
 					name="List Owner"
-                    :input-classes="'text-white'"
+					:input-classes="'text-white'"
 					placeholder="List Owner Address"
 					type="text"
 					:disabled="true"
 				>
-                    <template slot="infoBlock">
-                        <svg-icon
-                            class="cursor-pointer copy-icon"
-                            icon="copy"
-                            height="20"
-                            width="20"
-                            color="#F46E41"
-                            :fill="false"
-                            @click="copyToClipboard(model.pointListAddress)"
-                        />
-                    </template>
-                </base-input>
+					<template slot="infoBlock">
+						<svg-icon
+							class="cursor-pointer copy-icon"
+							icon="copy"
+							height="20"
+							width="20"
+							color="#F46E41"
+							:fill="false"
+							@click="copyToClipboard(model.pointListAddress)"
+						/>
+					</template>
+				</base-input>
 				<div class="d-flex">
 					<a
-						class="d-block border-bottom font-weight-bold cursor-pointer text-white"
+						class="d-block font-weight-bold cursor-pointer text-white"
 						:href="`${explorer.root}${explorer.tx}${transactionHash}`"
-						style="color: rgba(255, 255, 255, 0.5)"
+						style="color: rgba(255, 255, 255, 0.5); text-decoration: underline"
 						target="blank"
 					>
 						View On Etherscan
@@ -199,7 +199,7 @@
 						round
 						tag="nuxt-link"
 						:to="{
-							path: `/auctions/live`,
+							path: `/`,
 						}"
 						class="btn btn-default bg-transparent border-2"
 						type="default"
@@ -302,7 +302,7 @@ export default {
 						'Enter a wallet address, and set an amount (in tokens) this address will be able to purchase.  The criteria for who and how much is completely up to you - this list will act like a “guest list” and prevent people who are not on the list from purchasing, and/or prevent people on the list from buying more than their allotted amount.  You can have as many addresses on this list as you’d like.',
 				},
 			],
-			showModal: true,
+			showModal: false,
 			modalProps: {
 				gradient: 'primary',
 				modalContentClasses: 'rounded',
@@ -429,14 +429,14 @@ export default {
 }
 </script>
 <style scoped>
-    .copy-icon{
-        position: absolute;
-        right: 10px;
-        top: 10px;
-    }
+.copy-icon {
+	position: absolute;
+	right: 10px;
+	top: 10px;
+}
 </style>
 <style>
-    .bg-transparent{
-        background: transparent !important;
-    }
+.bg-transparent {
+	background: transparent !important;
+}
 </style>
