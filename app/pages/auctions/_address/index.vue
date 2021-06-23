@@ -6,7 +6,6 @@
 					:info="about"
 					:market-info="marketInfo"
 					:token-info="tokenInfo"
-					:point-list="marketInfo.hasPointList"
 					:user="userInfo"
 					:price="marketInfo.currentPrice"
 					:type="status.type"
@@ -103,10 +102,14 @@ export default {
 					decimals: 0,
 				},
 				hasPointList: false,
+				pointListAddress: '',
 				totalTokens: 0,
 				commitmentsTotal: 0,
 				wallet: '',
-				liquidityTemplate: null,
+				liquidity: {
+					liquidityTemplate: null,
+					lpTokenAddress: null,
+				},
 				finalized: 0,
 			},
 			tokenInfo: {
@@ -198,6 +201,8 @@ export default {
 				switch (name) {
 					case 'website':
 					case 'icon':
+					case 'desktopBanner':
+					case 'mobileBanner':
 					case 'description':
 						this.about[name] = data
 						break
@@ -206,6 +211,14 @@ export default {
 				}
 			}
 		})
+
+		// PointList
+		const pointListMethod = [{ methodName: 'pointList' }]
+		const [pointList] = await makeBatchCall(
+			getAuctionContract(this.auctionAddress),
+			pointListMethod
+		)
+		this.marketInfo.pointListAddress = pointList
 
 		this.loading = false
 	},
@@ -230,6 +243,7 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
+			this.marketInfo.hasPointList = data.usePointList
 			this.marketInfo.startPrice = toDecimals(
 				data.startPrice,
 				this.marketInfo.paymentCurrency.decimals
@@ -267,6 +281,7 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
+			this.marketInfo.hasPointList = data.usePointList
 			this.marketInfo.rate = toDecimals(
 				data.rate,
 				this.marketInfo.paymentCurrency.decimals
@@ -300,6 +315,7 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
+			this.marketInfo.hasPointList = data.usePointList
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.finalized = data.finalized
 			this.marketInfo.commitmentsTotal = toPrecision(
@@ -384,15 +400,20 @@ export default {
 			this.marketInfo.wallet = wallet
 
 			// Get Liquidity Template
-			const method = [{ methodName: 'liquidityTemplate' }]
+			const method = [
+				{ methodName: 'liquidityTemplate' },
+				{ methodName: 'getLPTokenAddress' },
+			]
 			try {
-				const [liquidityTemplate] = await makeBatchCall(
+				const [liquidityTemplate, lpTokenAddress] = await makeBatchCall(
 					postAuctionLauncherContract(wallet),
 					method
 				)
-				this.marketInfo.liquidityTemplate = Number(liquidityTemplate)
+				this.marketInfo.liquidity.liquidityTemplate = Number(liquidityTemplate)
+				this.marketInfo.liquidity.lpTokenAddress = lpTokenAddress
 			} catch (error) {
-				this.marketInfo.liquidityTemplate = null
+				this.marketInfo.liquidity.liquidityTemplate = null
+				this.marketInfo.liquidity.lpTokenAddress = null
 			}
 		},
 

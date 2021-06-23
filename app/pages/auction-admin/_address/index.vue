@@ -54,6 +54,7 @@
 								</div>
 							</form>
 						</validation-observer>
+						<!-- Icon !-->
 						<validation-observer v-slot="{ invalid }">
 							<form class="needs-validation" @submit.prevent="updateDocument(1)">
 								<div class="row">
@@ -82,6 +83,67 @@
 								</div>
 							</form>
 						</validation-observer>
+						<!-- Icon !-->
+						<!-- Desktop Banner !-->
+						<validation-observer v-slot="{ invalid }">
+							<form class="needs-validation" @submit.prevent="updateDocument(12)">
+								<div class="row">
+									<div class="col-md-2" />
+									<div class="col-md-5 mt-3">
+										<base-input
+											v-model="document.desktopBanner"
+											label="Desktop Banner"
+											name="desktop banner"
+											placeholder=""
+											type="text"
+											rules="required|website"
+										></base-input>
+										<div class="warning-info">* must be 478 * 678</div>
+									</div>
+									<div class="col-md-* mt-5">
+										<base-button
+											class="float-right"
+											type="primary"
+											native-type="submit"
+											:disabled="invalid"
+										>
+											Update
+										</base-button>
+									</div>
+								</div>
+							</form>
+						</validation-observer>
+						<!-- Desktop Banner !-->
+						<!-- Mobile Banner !-->
+						<validation-observer v-slot="{ invalid }">
+							<form class="needs-validation" @submit.prevent="updateDocument(13)">
+								<div class="row">
+									<div class="col-md-2" />
+									<div class="col-md-5 mt-3">
+										<base-input
+											v-model="document.mobileBanner"
+											label="Mobile Banner"
+											name="mobile banner"
+											placeholder=""
+											type="text"
+											rules="required|website"
+										></base-input>
+										<div class="warning-info">* must be 360 * 104</div>
+									</div>
+									<div class="col-md-* mt-5">
+										<base-button
+											class="float-right"
+											type="primary"
+											native-type="submit"
+											:disabled="invalid"
+										>
+											Update
+										</base-button>
+									</div>
+								</div>
+							</form>
+						</validation-observer>
+						<!-- Mobile Banner !-->
 						<validation-observer v-slot="{ invalid }">
 							<form class="needs-validation" @submit.prevent="updateDocument(2)">
 								<div class="row">
@@ -679,6 +741,8 @@ export default {
 				reddit: '',
 				twitter: '',
 				docs: '',
+				desktopBanner: '',
+				mobileBanner: '',
 			},
 			list: {
 				address: '',
@@ -777,17 +841,24 @@ export default {
 			const data = this.document[name]
 			const method = this.contractInstance.methods.setDocument(name, data)
 
-			if (name === 'icon') {
+			if (name === 'icon' || name === 'desktopBanner' || name === 'mobileBanner') {
+				const width = name === 'icon' ? 256 : name === 'desktopBanner' ? 478 : 360
+				const height = name === 'icon' ? 256 : name === 'desktopBanner' ? 678 : 104
 				const img = new Image()
-				console.log(img)
 				img.onload = async () => {
-					if (img.width === 256 && img.height === 256) {
+					if (img.width === width && img.height === height) {
 						await sendTransaction(method, { from: this.coinbase })
 					} else {
 						Swal.fire({
 							icon: 'error',
 							title: 'Oops!',
-							html: 'The icon must be 256 X 256',
+							html: `The ${
+								name === 'icon'
+									? 'icon'
+									: name === 'desktopBanner'
+									? 'desktop banner'
+									: 'mobile banner'
+							} must be ${width} X ${height}`,
 							buttonsStyling: false,
 							showCancelButton: false,
 							confirmButtonText: 'Close',
