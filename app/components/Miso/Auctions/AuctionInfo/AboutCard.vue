@@ -38,20 +38,22 @@
 									></span>
 									{{ status.auction }}
 								</span>
-								<span
-									v-if="pointList"
-									class="
-										fs-2
-										font-weight-bold
-										text-capitalize text-white
-										d-flex
-										align-items-center
-										pl-2
-									"
-								>
-									<span class="radius-full status-indicator btn-primary mr-2"></span>
-									<span class="pl-2">private</span>
-								</span>
+							</div>
+							<div
+								v-if="isPrivate"
+								class="
+									d-flex
+									special_status
+									px-3
+									py-2
+									mr-2
+									text-white
+									font-weight-bold
+									border-danger
+								"
+							>
+								<img src="@/assets/svg/private.svg" class="mr-2 mb-0" />
+								Private
 							</div>
 						</div>
 						<p class="font-weight-bold text-uppercase fs-2 d-flex align-items-center">
@@ -135,9 +137,13 @@
 				<div class="pt-3 mt-1 pr-5">
 					<h5 class="fs-1 font-weight-bold text-uppercase mb-0">CONTRACT:</h5>
 					<div class="d-flex align-items-center">
-						<p class="font-weight-bold text-white text-uppercase fs-3 mb-0">
+						<a
+							class="font-weight-bold text-white text-uppercase fs-3 mb-0"
+							:href="`${explorer.root}${explorer.address}${$route.params.address}`"
+							target="blank"
+						>
 							{{ $route.params.address | truncate(6) }}
-						</p>
+						</a>
 						<div class="copy-box d-flex align-items-center ml-2">
 							<div class="copy-box_icon">
 								<svg-icon
@@ -159,9 +165,13 @@
 				<div class="pt-3 mt-1 pr-5">
 					<h5 class="fs-1 font-weight-bold text-uppercase mb-0">TOKEN:</h5>
 					<div class="d-flex align-items-center">
-						<p class="font-weight-bold text-white text-uppercase fs-3 mb-0">
+						<a
+							class="font-weight-bold text-white text-uppercase fs-3 mb-0"
+							:href="`${explorer.root}${explorer.address}${tokenInfo.addr}`"
+							target="blank"
+						>
 							{{ tokenInfo.addr | truncate(6) }}
-						</p>
+						</a>
 						<div class="copy-box d-flex align-items-center ml-2">
 							<div class="copy-box_icon">
 								<svg-icon
@@ -172,6 +182,34 @@
 									color="#F46E41"
 									:fill="false"
 									@click="copyToClipboard(tokenInfo.addr)"
+								/>
+							</div>
+							<span class="font-weight-bolder text-white fs-2 pl-1">copy</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- LPToken Contract -->
+				<div v-if="marketInfo.liquidity.lpTokenAddress" class="pt-3 mt-1 pr-5">
+					<h5 class="fs-1 font-weight-bold text-uppercase mb-0">LPTOKEN:</h5>
+					<div class="d-flex align-items-center">
+						<a
+							class="font-weight-bold text-white text-uppercase fs-3 mb-0"
+							:href="`https://analytics.sushi.com/pairs/${marketInfo.liquidity.lpTokenAddress}`"
+							target="blank"
+						>
+							{{ marketInfo.liquidity.lpTokenAddress | truncate(6) }}
+						</a>
+						<div class="copy-box d-flex align-items-center ml-2">
+							<div class="copy-box_icon">
+								<svg-icon
+									class="cursor-pointer"
+									icon="copy"
+									height="20"
+									width="20"
+									color="#F46E41"
+									:fill="false"
+									@click="copyToClipboard(marketInfo.liquidity.lpTokenAddress)"
 								/>
 							</div>
 							<span class="font-weight-bolder text-white fs-2 pl-1">copy</span>
@@ -256,8 +294,9 @@
 import { Card, BaseDivider } from '@/components'
 // import { Popover } from "element-ui"
 import { theme } from '@/mixins/theme'
-import { divNumbers, toPrecision } from '@/util'
+import { divNumbers, toPrecision, zeroAddress } from '@/util'
 import BigNumber from 'bignumber.js'
+import { mapGetters } from 'vuex'
 
 export default {
 	components: {
@@ -298,10 +337,6 @@ export default {
 			required: true,
 			description: 'full data for status card',
 		},
-		pointList: {
-			type: Boolean,
-			default: false,
-		},
 	},
 	data() {
 		return {
@@ -326,6 +361,9 @@ export default {
 		}
 	},
 	computed: {
+		...mapGetters({
+			explorer: 'ethereum/explorer',
+		}),
 		seconds: () => 1000,
 		minutes() {
 			return this.seconds * 60
@@ -354,6 +392,12 @@ export default {
 		},
 		getFullTime() {
 			return `${this.displayDays} : ${this.displayHours} : ${this.displayMinutes} : ${this.displaySeconds}`
+		},
+		isPrivate() {
+			return (
+				this.marketInfo.hasPointList &&
+				this.marketInfo.pointListAddress !== zeroAddress
+			)
 		},
 		auctionType() {
 			if (this.type === 'crowdsale') {
@@ -474,7 +518,7 @@ export default {
 			})
 		},
 		textCheck(str, val) {
-			const pattern = /^[()\s0-9a-zA-Z.,/$#:&_]+$/
+			const pattern = /^[()\s0-9a-zA-Z.,/$#:&_-]+$/
 			if (str.match(pattern)) {
 				return str
 			} else {

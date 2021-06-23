@@ -24,7 +24,23 @@
 					<i class="far fa-calendar"></i>
 					<span class="pl-1">{{ deadDate }}</span>
 				</div>
-				<span class="auction-button">
+				<span class="auction-button d-flex align-items-center">
+					<div
+						v-if="isPrivate"
+						class="
+							border-0
+							special_status
+							px-3
+							py-2
+							mr-2
+							text-white
+							font-weight-bold
+							border-danger
+						"
+					>
+						<img src="@/assets/svg/private.svg" class="mr-2 mb-0" />
+						Private
+					</div>
 					<nobr>
 						<span>
 							<svg-icon
@@ -229,7 +245,13 @@ import {
 import { getContractInstance as crowdsaleContract } from '@/services/web3/auctions/crowdsale'
 import { getContractInstance as batchAuctionContract } from '@/services/web3/auctions/batch'
 import { makeBatchCall } from '@/services/web3/base'
-import { toDecimals, toPrecision, to18Decimals, toNDecimals } from '@/util/index'
+import {
+	toDecimals,
+	toPrecision,
+	to18Decimals,
+	toNDecimals,
+	zeroAddress,
+} from '@/util'
 import { mapGetters } from 'vuex'
 import { inpidatorTheme } from '@/mixins/auctionIndicator'
 
@@ -310,6 +332,7 @@ export default {
 				totalTokensCommitted: 0,
 				paymentCurrency: 'ETH',
 				hasPointList: false,
+				pointListAddress: '',
 				totalTokens: 0,
 				commitmentsTotal: 0,
 			},
@@ -361,9 +384,12 @@ export default {
 			return 'split-line-back-white'
 		},
 		cardImage() {
+			if (this.cardimg && this.cardimg.startsWith('http')) return this.cardimg
 			return require('~/assets/images/' + this.cardimg)
 		},
 		mobileCardImage() {
+			if (this.mobilecardimg && this.mobilecardimg.startsWith('http'))
+				return this.mobilecardimg
 			return require('~/assets/images/' + this.mobilecardimg)
 		},
 		logoImage() {
@@ -406,6 +432,12 @@ export default {
 		isUpcoming() {
 			const currentTimestamp = Date.parse(new Date()) / 1000
 			return this.marketInfo.startTime > currentTimestamp
+		},
+		isPrivate() {
+			return (
+				this.marketInfo.hasPointList &&
+				this.marketInfo.pointListAddress !== zeroAddress
+			)
 		},
 		sliderMax() {
 			if (this.limit > 0) {
@@ -527,6 +559,12 @@ export default {
 			default:
 				break
 		}
+
+		// PointList
+		const pointListMethod = [{ methodName: 'pointList' }]
+		const [pointList] = await makeBatchCall(this.contractInstance, pointListMethod)
+		this.marketInfo.pointListAddress = pointList
+
 		const currentTimestamp = Date.parse(new Date()) / 1000
 		let auction
 		if (this.marketInfo.startTime > currentTimestamp) {
@@ -604,6 +642,7 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
+			this.marketInfo.hasPointList = data.usePointList
 			this.marketInfo.startPrice = toDecimals(
 				data.startPrice,
 				this.marketInfo.paymentCurrency.decimals
@@ -663,6 +702,7 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
+			this.marketInfo.hasPointList = data.usePointList
 			this.marketInfo.rate = toDecimals(
 				data.rate,
 				this.marketInfo.paymentCurrency.decimals
@@ -696,6 +736,7 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
+			this.marketInfo.hasPointList = data.usePointList
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.commitmentsTotal = toPrecision(
 				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
@@ -830,6 +871,7 @@ export default {
 .auction-button {
 	position: absolute;
 	right: 1rem;
+	top: -0.5rem;
 	text-transform: capitalize;
 	@media screen and (min-width: 788px) and (max-width: 900px) {
 		top: -0.25rem;

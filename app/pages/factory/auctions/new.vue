@@ -719,37 +719,41 @@ export default {
 				this.nextBtnLoading = true
 				const model = this.model
 
-				// Data Param
-				let data
-				switch (this.chosenAuctionType) {
-					case 2:
-						data = this.getDutchData()
-						break
-					case 1:
-						data = this.getCrowdsaleData()
-						break
-					case 3:
-						data = this.getBatchData()
-						break
-				}
-
-				// Create Market
-				const method = misoMarketContract().methods.createMarket(
-					auctionTemplateId,
-					model.token.address,
-					to18Decimals(model.tokenSupply),
-					dai.misoFeeAcct,
-					data
-				)
-
-				sendTransactionAndWait(method, { from: this.coinbase }, (receipt) => {
-					this.nextBtnLoading = false
-					if (receipt) {
-						this.deployedMarket.txHash = receipt.transactionHash
-						this.deployedMarket.address = receipt.events.MarketCreated.returnValues[1]
+				try {
+					// Data Param
+					let data
+					switch (this.chosenAuctionType) {
+						case 2:
+							data = this.getDutchData()
+							break
+						case 1:
+							data = this.getCrowdsaleData()
+							break
+						case 3:
+							data = this.getBatchData()
+							break
 					}
-					resolve(receipt.status)
-				})
+
+					// Create Market
+					const method = misoMarketContract().methods.createMarket(
+						auctionTemplateId,
+						model.token.address,
+						to18Decimals(model.tokenSupply),
+						dai.misoFeeAcct,
+						data
+					)
+					sendTransactionAndWait(method, { from: this.coinbase }, (receipt) => {
+						this.nextBtnLoading = false
+						if (receipt) {
+							this.deployedMarket.txHash = receipt.transactionHash
+							this.deployedMarket.address =
+								receipt.events.MarketCreated.returnValues[1]
+						}
+						resolve(receipt.status)
+					})
+				} catch (error) {
+					console.log('error occurred : ', error)
+				}
 			})
 		},
 		getDutchData() {
