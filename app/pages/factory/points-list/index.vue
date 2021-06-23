@@ -357,8 +357,6 @@ export default {
 		},
 		async deployPermissionList(ref) {
 			if (this.tabIndex === 2) {
-				// this.resetAllvariable()
-				// this.moveToFirst()
 				this.showModal = true
 			} else {
 				// Validation
@@ -378,7 +376,6 @@ export default {
 					{ from: this.coinbase },
 					(receipt) => {
 						if (receipt.status) {
-							// console.log(receipt)
 							this.transactionHash = receipt.transactionHash
 							this.model.pointListAddress =
 								receipt.events.PointListDeployed.returnValues.addr
@@ -414,16 +411,6 @@ export default {
 		moveToFirst() {
 			this.$refs.step2.successFileLoad = 'ready'
 			this.$refs.allsteps.navigateToTab(0)
-		},
-		copyToClipboard(value) {
-			navigator.clipboard.writeText(value).then(() => {
-				this.$notify({
-					type: 'success',
-					verticalAlign: 'bottom',
-					horizontalAlign: 'right',
-					message: 'successfully copied to clipboard!',
-				})
-			})
 		},
 	},
 }

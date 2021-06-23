@@ -604,8 +604,8 @@ export default {
 		// TODO needs to be set if user is author of auction or not
 		canFinalize() {
 			if (this.userInfo.isAdmin) return true
-			if (!this.marketInfo.liquidityTemplate) return false
-			return this.marketInfo.liquidityTemplate > 0
+			if (!this.marketInfo.liquidity.liquidityTemplate) return false
+			return this.marketInfo.liquidity.liquidityTemplate > 0
 		},
 		isAuthor() {
 			return false
@@ -898,8 +898,8 @@ export default {
 
 			let method
 			if (
-				this.marketInfo.liquidityTemplate &&
-				this.marketInfo.liquidityTemplate > 0
+				this.marketInfo.liquidity.liquidityTemplate &&
+				this.marketInfo.liquidity.liquidityTemplate > 0
 			) {
 				method = postAuctionLauncherContract(
 					this.marketInfo.wallet

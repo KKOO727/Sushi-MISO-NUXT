@@ -146,9 +146,9 @@ export default {
 			cardContent: [],
 			cardContentTemplate: [
 				{
-					cardimg: 'card03.jpg',
-					mobilecardimg: 'card_mobile03.jpg',
-					logoimg: 'card_logo03.png',
+					cardimg: 'card.png',
+					mobilecardimg: 'card_mobile.png',
+					logoimg: 'card_logo.png',
 					title: '',
 					description: '',
 					websiteurl: '',
@@ -253,10 +253,20 @@ export default {
 	},
 	async mounted() {
 		await this.initAuctions()
-		let i
+		let i, templateIndex
 		this.cardContent = []
 		for (i = 0; i < this.auctionsList.length; i++) {
-			this.cardContent.push({ ...this.cardContentTemplate[i % 3] })
+			switch (this.auctionsList[i]) {
+				case '0x6088aCBeC1dc8a66E800453f15BBf39d392a39C5':
+					templateIndex = 1
+					break
+				case '0x1cF0EC7745de56682bC9a27632E7311FBc71C75a':
+					templateIndex = 2
+					break
+				default:
+					templateIndex = 0
+			}
+			this.cardContent.push({ ...this.cardContentTemplate[templateIndex] })
 			this.cardContent[i].auction = this.auctionsList[i]
 			await this.getTemplateId(this.cardContent[i].auction)
 			let type
@@ -324,6 +334,12 @@ export default {
 						case 'description':
 							this.cardContent[i].description = data
 							// this.cardContent[i].panescript = data
+							break
+						case 'desktopBanner':
+							this.cardContent[i].cardimg = data
+							break
+						case 'mobileBanner':
+							this.cardContent[i].mobilecardimg = data
 							break
 						default:
 							this.cardContent[i].social[name] = data

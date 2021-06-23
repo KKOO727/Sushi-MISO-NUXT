@@ -92,10 +92,7 @@
 										? 'width: auto !important; min-width: auto !important'
 										: ''
 								"
-								@click.native="
-									nextTab()
-									showModal = true
-								"
+								@click.native="nextTab"
 							>
 								{{ nextButtonText }}
 							</base-button>

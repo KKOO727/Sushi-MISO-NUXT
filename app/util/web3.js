@@ -43,12 +43,12 @@ export const toDecimals = (value, decimals = 18) => {
 
 export const to18Decimals = (value) => {
 	const TENPOW18 = BigNumber(10).pow(18)
-	return BigNumber(value).multipliedBy(TENPOW18).toFixed()
+	return BigNumber(value).multipliedBy(TENPOW18).toFixed(0)
 }
 
 export const toNDecimals = (value, decimals) => {
 	const TENPOW = BigNumber(10).pow(decimals)
-	return BigNumber(value).multipliedBy(TENPOW).toFixed()
+	return BigNumber(value).multipliedBy(TENPOW).toFixed(0)
 }
 
 export const toFixed = (value, decimals = 0, rounding = 1) => {

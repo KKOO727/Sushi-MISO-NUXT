@@ -39,6 +39,21 @@
 						/>
 					</div>
 					<div
+						v-if="isPrivate"
+						class="
+							special_status
+							px-3
+							py-2
+							mr-2
+							text-white
+							font-weight-bold
+							border-danger
+						"
+					>
+						<img src="@/assets/svg/private.svg" class="mr-2 mb-0" />
+						Private
+					</div>
+					<div
 						class="
 							special_status
 							px-3
@@ -156,7 +171,13 @@ import {
 import { getContractInstance as crowdsaleContract } from '@/services/web3/auctions/crowdsale'
 import { getContractInstance as batchAuctionContract } from '@/services/web3/auctions/batch'
 import { makeBatchCall } from '@/services/web3/base'
-import { toDecimals, toPrecision, to18Decimals, toNDecimals } from '@/util/index'
+import {
+	toDecimals,
+	toPrecision,
+	to18Decimals,
+	toNDecimals,
+	zeroAddress,
+} from '@/util'
 
 import CrowdProgress from '~/components/Miso/Auctions/Specials/CrowdProgress'
 import DutchProgress from '~/components/Miso/Auctions/Specials/DutchIndicator'
@@ -212,6 +233,7 @@ export default {
 				totalTokensCommitted: 0,
 				paymentCurrency: 'ETH',
 				hasPointList: false,
+				pointListAddress: '',
 				totalTokens: 0,
 				commitmentsTotal: 0,
 			},
@@ -267,6 +289,12 @@ export default {
 		isUpcoming() {
 			const currentTimestamp = Date.parse(new Date()) / 1000
 			return this.marketInfo.startTime > currentTimestamp
+		},
+		isPrivate() {
+			return (
+				this.marketInfo.hasPointList &&
+				this.marketInfo.pointListAddress !== zeroAddress
+			)
 		},
 		sliderMax() {
 			if (this.limit > 0) {
@@ -343,6 +371,12 @@ export default {
 			default:
 				break
 		}
+
+		// PointList
+		const pointListMethod = [{ methodName: 'pointList' }]
+		const [pointList] = await makeBatchCall(this.contractInstance, pointListMethod)
+		this.marketInfo.pointListAddress = pointList
+
 		const currentTimestamp = Date.parse(new Date()) / 1000
 		let auction
 		if (this.marketInfo.startTime > currentTimestamp) {
@@ -368,9 +402,8 @@ export default {
 			this.buyhoverflag = false
 		},
 		checkTitle(value) {
-			const specialReg = '^(?=.*[!@#$%^&*"\\[\\]\\{\\}<>/\\=\\\\\\_´+`~\\:;,\\.€\\|])'
-
-			if (!value.match(specialReg)) {
+			const pattern = /^[()\s0-9a-zA-Z.,/$#:&_-]+$/
+			if (value.match(pattern)) {
 				return value
 			} else {
 				return (
@@ -418,6 +451,7 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
+			this.marketInfo.hasPointList = data.usePointList
 			this.marketInfo.startPrice = toDecimals(
 				data.startPrice,
 				this.marketInfo.paymentCurrency.decimals
@@ -477,6 +511,7 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
+			this.marketInfo.hasPointList = data.usePointList
 			this.marketInfo.rate = toDecimals(
 				data.rate,
 				this.marketInfo.paymentCurrency.decimals
@@ -510,6 +545,7 @@ export default {
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
 			this.marketInfo.endTime = data.endTime
+			this.marketInfo.hasPointList = data.usePointList
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.commitmentsTotal = toPrecision(
 				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
