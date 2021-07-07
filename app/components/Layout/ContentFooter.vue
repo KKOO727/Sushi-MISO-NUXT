@@ -3,7 +3,15 @@
 		class="footer ml-auto"
 		:class="[!slideBar ? 'active-footer' : 'inactive-footer']"
 	>
-		<div class="container-fluid d-flex justify-content-between align-items-center">
+		<div
+			class="
+				container-fluid
+				footer-direction
+				d-flex
+				justify-content-between
+				align-items-center
+			"
+		>
 			<div class="footer-link">
 				<a href="https://discord.gg/yYWQrPdNJc" target="_blank" rel="noopener">
 					Report any bugs on our Discord. No one wants your alpha bug Tweetstorm.
@@ -43,6 +51,20 @@ export default {
 	}
 	padding-top: 0px !important;
 	padding-bottom: 0px !important;
+
+	.footer-direction {
+		flex-direction: column;
+		@media (min-width: 768px) {
+			flex-direction: row;
+		}
+
+		.copyright {
+			margin: 15px 0;
+			@media (min-width: 768px) {
+				margin: 0;
+			}
+		}
+	}
 }
 @media screen and (min-width: 1200px) {
 	.active-footer {

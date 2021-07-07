@@ -72,7 +72,7 @@ export default {
 				.filter((auction) => {
 					console.log(auction)
 					const currentTimestamp = Date.parse(new Date()) / 1000
-					return currentTimestamp < parseInt(auction.startTime)
+					return currentTimestamp < parseInt(auction.startTime) && !auction.finalized
 				})
 				.map((x) => x[0])
 			this.loading = false
