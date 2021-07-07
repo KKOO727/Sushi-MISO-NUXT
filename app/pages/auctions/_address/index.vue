@@ -138,7 +138,7 @@ export default {
 	},
 	watch: {
 		commitmentsTotal(newValue) {
-			this.marketInfo.commitmentsTotal = toPrecision(newValue, 3)
+			this.marketInfo.commitmentsTotal = toPrecision(newValue, 5)
 			if (this.status.type === 'dutch') {
 				this.updateDutchData()
 			} else if (this.status.type === 'crowdsale') {
@@ -174,7 +174,9 @@ export default {
 		}
 		const currentTimestamp = Date.parse(new Date()) / 1000
 		let auction
-		if (this.marketInfo.startTime > currentTimestamp) {
+		if (this.marketInfo.finalized) {
+			auction = 'finished'
+		} else if (this.marketInfo.startTime > currentTimestamp) {
 			auction = 'upcoming'
 			this.status.date = new Date(this.marketInfo.startTime * 1000)
 		} else if (currentTimestamp < this.marketInfo.endTime) {
@@ -255,7 +257,7 @@ export default {
 			this.marketInfo.finalized = data.finalized
 			this.marketInfo.commitmentsTotal = toPrecision(
 				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
-				3
+				5
 			)
 
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
@@ -295,7 +297,7 @@ export default {
 			this.marketInfo.finalized = data.finalized
 			this.marketInfo.commitmentsTotal = toPrecision(
 				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
-				2
+				5
 			)
 
 			this.status.auctionSuccessful = data.auctionSuccessful
@@ -320,7 +322,7 @@ export default {
 			this.marketInfo.finalized = data.finalized
 			this.marketInfo.commitmentsTotal = toPrecision(
 				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
-				2
+				5
 			)
 			this.marketInfo.minimumCommitmentAmount = toDecimals(
 				data.minimumCommitmentAmount,
@@ -331,7 +333,7 @@ export default {
 			this.status.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.currentPrice = toPrecision(
 				this.marketInfo.commitmentsTotal / this.status.totalTokens,
-				2
+				5
 			)
 		},
 
@@ -357,7 +359,7 @@ export default {
 			const price = clearingPrice(marketInfo)
 			this.marketInfo.currentPrice = toPrecision(
 				toDecimals(price, this.marketInfo.paymentCurrency.decimals),
-				3
+				5
 			)
 			const tokensCommitted =
 				this.marketInfo.commitmentsTotal / this.marketInfo.currentPrice

@@ -122,11 +122,12 @@ export default {
 		async initAuctions() {
 			await this.getAuctions()
 			this.auctionsList = this.auctions
-				.filter((aution) => {
+				.filter((auction) => {
 					const currentTimestamp = Date.parse(new Date()) / 1000
 					return (
-						currentTimestamp >= parseInt(aution.startTime) &&
-						currentTimestamp < parseInt(aution.endTime)
+						currentTimestamp >= parseInt(auction.startTime) &&
+						currentTimestamp < parseInt(auction.endTime) &&
+						!auction.finalized
 					)
 				})
 				.map((x) => x)

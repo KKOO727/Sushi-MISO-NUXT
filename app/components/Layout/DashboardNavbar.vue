@@ -92,7 +92,7 @@
 				<div class="d-flex justify-content-center pb-5 mb-0 pb-lg-0">
 					<button
 						v-if="!coinbase"
-						class="text-uppercase rounded-pill connect-btn text-white"
+						class="text-uppercase rounded-pill connect-btn text-white my-3"
 						:class="{ 'connect-btn_white': !darkMode }"
 						@click="connectAccount()"
 					>
@@ -597,17 +597,24 @@ export default {
 		toggleMenu() {
 			this.showMenu = !this.showMenu
 		},
-		changeEthChain(index) {
+		async changeEthChain(index) {
 			const chain = this.ChainIDs[index]
-			ethereum
-				.send('wallet_addEthereumChain', [chain, this.coinbase])
-				.then((result) => {
-					console.log('result:', result)
-					this.showNetworkModal = false
+			try {
+				await ethereum.request({
+					method: 'wallet_switchEthereumChain',
+					params: [{ chainId: chain.chainId }],
 				})
-				.catch((error) => {
-					console.log('error:', error)
-				})
+			} catch (switchError) {
+				ethereum
+					.send('wallet_addEthereumChain', [chain])
+					.then((result) => {
+						console.log('result:', result)
+						this.showNetworkModal = false
+					})
+					.catch((error) => {
+						console.log('error:', error)
+					})
+			}
 		},
 	},
 }

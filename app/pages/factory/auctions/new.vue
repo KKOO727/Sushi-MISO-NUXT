@@ -499,15 +499,15 @@ export default {
 					description:
 						'Great for finding the true market value of a completely novel item',
 				},
-				{
-					title: 'Crowdsale',
-					id: 1,
-					disabled: false,
-					icon: 'crowdsale',
-					content: 'A fixed price and a fixed set of tokens.',
-					description:
-						'Great when the token price is already known or has been decided on previously',
-				},
+				// {
+				// 	title: 'Crowdsale',
+				// 	id: 1,
+				// 	disabled: false,
+				// 	icon: 'crowdsale',
+				// 	content: 'A fixed price and a fixed set of tokens.',
+				// 	description:
+				// 		'Great when the token price is already known or has been decided on previously',
+				// },
 				{
 					title: 'Batch Auction',
 					id: 3,
