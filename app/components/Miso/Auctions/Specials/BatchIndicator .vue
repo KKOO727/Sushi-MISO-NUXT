@@ -12,7 +12,7 @@
 				></span>
 
 				<!-- active status text -->
-				<span
+				<!-- <span
 					v-if="progress <= 60"
 					class="progress-status_indicator-line_status"
 					:style="{ left: computedProgress, width: computedProctessStyle }"
@@ -41,7 +41,7 @@
 							{{ marketInfo.commitmentsTotal }} / {{ marketInfo.totalTokens }}
 						</span>
 					</span>
-				</span>
+				</span> -->
 				<!-- active status text -->
 
 				<!-- start auction -->
@@ -62,30 +62,55 @@
 		<span
 			class="
 				position-absolute
-				bottom-0
-				fs-1
 				font-weight-bold
-				progress-status_start-text
+				text-uppercase
+				progress-status_min-raise
+				d-flex
+				flex-column
 			"
 		>
-			START
+			<span class="fs-1">min raise:</span>
+			<span class="text-white fs-2">
+				{{ minRaise }} {{ marketInfo.paymentCurrency.symbol }}
+			</span>
 		</span>
 		<span
 			class="
 				position-absolute
-				bottom-0
-				fs-1
 				font-weight-bold
-				progress-status_end-text
+				text-uppercase
+				progress-status_total-raised
+				d-flex
+				flex-column
 			"
 		>
-			END
+			<span class="fs-1">total raised:</span>
+			<span class="text-white fs-2">
+				{{ marketInfo.commitmentsTotal }} {{ marketInfo.paymentCurrency.symbol }}
+			</span>
+		</span>
+		<span
+			class="
+				position-absolute
+				font-weight-bold
+				text-uppercase
+				progress-status_current-price
+				d-flex
+				flex-column
+			"
+		>
+			<span class="fs-1">auction token price:</span>
+			<span class="text-white fs-2">
+				{{ marketInfo.currentPrice }} {{ marketInfo.paymentCurrency.symbol }}
+			</span>
 		</span>
 	</div>
 </template>
 
 <script>
 import { inpidatorTheme } from '@/mixins/auctionIndicator'
+import { toDecimalPlaces, multiplyNumbers } from '@/util'
+
 export default {
 	mixins: [inpidatorTheme],
 	props: {
@@ -130,6 +155,18 @@ export default {
 				return 0
 			}
 			return '1px'
+		},
+		minRaise() {
+			if (this.marketInfo.minimumCommitmentAmount !== '') {
+				return toDecimalPlaces(
+					multiplyNumbers(
+						this.marketInfo.totalTokens,
+						this.marketInfo.minimumCommitmentAmount
+					),
+					this.marketInfo.paymentCurrency.decimals
+				)
+			}
+			return 0
 		},
 	},
 }
@@ -201,15 +238,52 @@ export default {
 		width: 15px;
 		z-index: 10;
 	}
-	&_start-text {
+	&_min-raise {
 		left: 4px;
-		bottom: 14px;
-		transform: translateY(100%);
+		top: 10px;
+		transform: translateY(-12%);
+		@media screen and (max-width: 500px) {
+			margin-top: -2px;
+			span {
+				&:first-child {
+					font-size: 10px !important;
+				}
+				font-size: 10px !important;
+			}
+		}
 	}
-	&_end-text {
+	&_total-raised {
 		right: 6px;
 		top: 10px;
 		transform: translateY(-12%);
+		text-align: right;
+		@media screen and (max-width: 500px) {
+			margin-top: -2px;
+			span {
+				&:first-child {
+					font-size: 10px !important;
+				}
+				font-size: 10px !important;
+			}
+		}
+	}
+	&_current-price {
+		left: 6px;
+		bottom: 24px;
+		transform: translateY(100%);
+		background: -webkit-linear-gradient(45deg, #f05240, #ba23ab);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		@media screen and (max-width: 500px) {
+			margin-top: -2px;
+			span {
+				&:first-child {
+					font-size: 10px !important;
+				}
+				font-size: 10px !important;
+			}
+		}
 	}
 	&_bottom-line {
 		position: absolute;

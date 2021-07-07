@@ -3,25 +3,44 @@
 		<div class="d-flex w-100 position-relative">
 			<!-- starting price text -->
 			<span class="position-absolute progress-status_start-price d-flex flex-column">
-				<span class="font-weight-bold fs-1 text-uppercase">starting price</span>
+				<span class="font-weight-bold fs-1 text-uppercase">starting price:</span>
 				<span class="font-weight-bold text-white fs-2 text-uppercase">
 					{{ marketInfo.startPrice }} {{ marketInfo.paymentCurrency.symbol }}
 					<!-- 0.0005897 ETH -->
 				</span>
 			</span>
-
 			<!-- starting price text -->
+
+			<!-- total raised text -->
+			<span class="position-absolute progress-status_total-raised d-flex flex-column">
+				<span class="font-weight-bold fs-1 text-uppercase">total raised:</span>
+				<span class="font-weight-bold text-white fs-2 text-uppercase">
+					{{ marketInfo.commitmentsTotal }} {{ marketInfo.paymentCurrency.symbol }}
+				</span>
+			</span>
+			<!-- total raised text -->
 
 			<!-- reserve price text -->
 			<span
 				class="position-absolute progress-status_reserve-price d-flex flex-column"
 			>
-				<span class="font-weight-bold fs-1 text-uppercase">RESERVE PRICE</span>
+				<span class="font-weight-bold fs-1 text-uppercase">RESERVE PRICE:</span>
 				<span class="font-weight-bold text-white fs-2 text-uppercase">
 					{{ marketInfo.minimumPrice }} {{ marketInfo.paymentCurrency.symbol }}
 				</span>
 			</span>
 			<!-- reserve price text -->
+
+			<!-- current price text -->
+			<span
+				class="position-absolute progress-status_current-price d-flex flex-column"
+			>
+				<span class="font-weight-bold fs-1 text-uppercase">auction token price:</span>
+				<span class="font-weight-bold text-white fs-2 text-uppercase">
+					{{ marketInfo.currentPrice }} {{ marketInfo.paymentCurrency.symbol }}
+				</span>
+			</span>
+			<!-- current price text -->
 
 			<span
 				class="progress-status_line d-inline-block position-absolute dutch"
@@ -34,7 +53,7 @@
 				></span>
 				<span class="progress-status_line_left-dot" :class="[statusColor]"></span>
 				<span class="progress-status_line_right-dot" :class="[statusColor]"></span>
-				<span
+				<!-- <span
 					v-if="progress !== 0"
 					class="text-box d-flex align-items-end"
 					:class="{ down: progress < 32 }"
@@ -75,7 +94,7 @@
 							:style="{ width: computedProctessStyle }"
 						></span>
 					</span>
-				</span>
+				</span> -->
 			</span>
 		</div>
 	</div>
@@ -189,6 +208,22 @@ export default {
 			}
 		}
 	}
+	&_total-raised {
+		right: 0;
+		top: 0;
+		margin-top: -4px;
+		margin-right: 4px;
+		text-align: right;
+		@media screen and (max-width: 500px) {
+			margin-top: -2px;
+			span {
+				&:first-child {
+					font-size: 10px !important;
+				}
+				font-size: 10px !important;
+			}
+		}
+	}
 	&_reserve-price {
 		right: 0;
 		bottom: -8px;
@@ -201,6 +236,25 @@ export default {
 					font-size: 10px !important;
 				}
 				font-size: 12px !important;
+			}
+		}
+	}
+	&_current-price {
+		left: 0;
+		bottom: -10px;
+		margin-bottom: -24px;
+		margin-left: 4px;
+		background: -webkit-linear-gradient(45deg, #f05240, #ba23ab);
+		background-clip: text;
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		@media screen and (max-width: 500px) {
+			margin-top: -2px;
+			span {
+				&:first-child {
+					font-size: 10px !important;
+				}
+				font-size: 10px !important;
 			}
 		}
 	}

@@ -174,7 +174,6 @@ export default {
 	margin: 0 0 2rem 0;
 	background-color: #202231;
 	padding: 0px;
-	width: 50vw;
 	overflow-y: hidden;
 	overflow-x: hidden;
 	align-self: center;

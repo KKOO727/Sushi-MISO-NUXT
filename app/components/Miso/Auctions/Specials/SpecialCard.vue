@@ -114,7 +114,10 @@
 					<span class="upcoming counter-line">{{ getFullTime }}</span>
 				</div>
 			</div>
-			<base-divider class="mb-4 mt-2 py-1" />
+			<base-divider
+				class="mb-4 mt-2 py-1"
+				:style="{ marginTop: status.type !== 'batch' ? '25px !important' : '' }"
+			/>
 			<!-- <div class="d-flex flex-column">
 				<div class="font-weight-bold text-white text-uppercase fs-1">recipe:</div>
 				<div class="fs-3 font-weight-bold text-white mt-1">
@@ -288,7 +291,9 @@ export default {
 		},
 		isUpcoming() {
 			const currentTimestamp = Date.parse(new Date()) / 1000
-			return this.marketInfo.startTime > currentTimestamp
+			return (
+				this.marketInfo.startTime > currentTimestamp && !this.marketInfo.finalized
+			)
 		},
 		isPrivate() {
 			return (
@@ -379,7 +384,9 @@ export default {
 
 		const currentTimestamp = Date.parse(new Date()) / 1000
 		let auction
-		if (this.marketInfo.startTime > currentTimestamp) {
+		if (this.marketInfo.finalized) {
+			auction = 'finished'
+		} else if (this.marketInfo.startTime > currentTimestamp) {
 			auction = 'upcoming'
 			this.status.date = new Date(this.marketInfo.startTime * 1000)
 		} else if (currentTimestamp < this.marketInfo.endTime) {
@@ -460,9 +467,10 @@ export default {
 				data.minimumPrice,
 				this.marketInfo.paymentCurrency.decimals
 			)
+			this.marketInfo.finalized = data.finalized
 			this.marketInfo.commitmentsTotal = toPrecision(
 				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
-				3
+				5
 			)
 
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
@@ -495,7 +503,7 @@ export default {
 			const price = clearingPrice(marketInfo)
 			this.marketInfo.currentPrice = toPrecision(
 				toDecimals(price, this.marketInfo.paymentCurrency.decimals),
-				3
+				5
 			)
 			const tokensCommitted =
 				this.marketInfo.commitmentsTotal / this.marketInfo.currentPrice
@@ -521,16 +529,17 @@ export default {
 				this.marketInfo.paymentCurrency.decimals
 			)
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
+			this.marketInfo.finalized = data.finalized
 			this.marketInfo.commitmentsTotal = toPrecision(
 				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
-				2
+				5
 			)
 
 			this.status.auctionSuccessful = data.auctionSuccessful
 			this.status.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.currentPrice = toPrecision(
 				data.rate / this.status.totalTokens,
-				2
+				5
 			)
 			const tokensCommitted = this.marketInfo.commitmentsTotal * this.marketInfo.rate
 			this.marketInfo.totalTokensCommitted = tokensCommitted
@@ -547,9 +556,10 @@ export default {
 			this.marketInfo.endTime = data.endTime
 			this.marketInfo.hasPointList = data.usePointList
 			this.marketInfo.totalTokens = toDecimals(data.totalTokens)
+			this.marketInfo.finalized = data.finalized
 			this.marketInfo.commitmentsTotal = toPrecision(
 				toDecimals(data.commitmentsTotal, this.marketInfo.paymentCurrency.decimals),
-				2
+				5
 			)
 			this.marketInfo.minimumCommitmentAmount = toDecimals(
 				data.minimumCommitmentAmount,
@@ -560,7 +570,7 @@ export default {
 			this.status.totalTokens = toDecimals(data.totalTokens)
 			this.marketInfo.currentPrice = toPrecision(
 				this.marketInfo.commitmentsTotal / this.status.totalTokens,
-				2
+				5
 			)
 		},
 

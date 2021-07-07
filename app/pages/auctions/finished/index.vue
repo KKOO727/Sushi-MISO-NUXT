@@ -71,7 +71,7 @@ export default {
 			this.auctionsList = this.auctions
 				.filter((auction) => {
 					const currentTimestamp = Date.parse(new Date()) / 1000
-					return currentTimestamp > parseInt(auction.endTime)
+					return currentTimestamp > parseInt(auction.endTime) || auction.finalized
 				})
 				.map((x) => x[0])
 			this.loading = false

@@ -7,18 +7,10 @@
 			</div>
 		</template>
 		<div>
-			<div
-				class="
-					col-12
-					d-flex
-					justify-content-center justify-content-sm-between
-					flex-wrap
-					mb-3
-				"
-			>
+			<div class="col-12 d-flex justify-content-between flex-wrap mb-3">
 				<el-select
 					v-model="pagination.perPage"
-					class="select-primary pagination-select"
+					class="select-primary pagination-select rowperPageWidth"
 					placeholder="Per page"
 				>
 					<el-option
@@ -40,14 +32,22 @@
 				</div>
 			</div>
 			<el-table
+				ref="tableRef"
 				class="table-responsive table-flush"
 				:data="queriedData"
 				row-key="id"
 				header-row-class-name="thead"
 				@sort-change="sortChange"
 			>
-				<el-table-column label="Address" min-width="200px" prop="address">
-					<template #default="{ row }">
+				<el-table-column
+					v-for="(column, index) in columns"
+					:key="index"
+					:label="column.label"
+					:min-width="column.width"
+					:prop="column.address"
+					:sortable="column.sortable"
+				>
+					<template v-if="column.label === 'Address'" #default="{ row }">
 						<eth-image
 							class="avatar avatar-xs mr-2"
 							:opts="{
@@ -58,70 +58,42 @@
 						/>
 						<span>{{ shortenAddress(row.address) }}</span>
 					</template>
-				</el-table-column>
-
-				<el-table-column label="Amount Committed" min-width="150px" prop="commitment">
-					<template #default="{ row }">
+					<template
+						v-else-if="column.label === 'Amount Committed'"
+						#default="{ row }"
+					>
 						<span>{{ row.amount }} {{ shortCurrency }}</span>
 					</template>
-				</el-table-column>
-
-				<!-- <el-table-column label="Price" min-width="140px" prop="price">
-					<template #default="{ row }">
-						<span>{{ to18Decimals(row.price) }}</span>
-					</template>
-				</el-table-column> -->
-
-				<!-- <el-table-column
-					label="Min Tokens"
-					min-width="160px"
-					prop="totalTokensCommitted"
-				>
-					<template #default="{ row }">
-						<span>{{ to18Decimals(row.commitment) / to18Decimals(row.price) }}</span>
-					</template>
-				</el-table-column> -->
-
-				<!-- <el-table-column label="Bonus" min-width="120px" prop="bonus">
-					<template #default="{ row }">
-						<span>
-							{{
-								row.amount / to18Decimals(currentPrice) -
-								row.amount / to18Decimals(row.price)
-							}}
-						</span>
-					</template>
-				</el-table-column> -->
-
-				<el-table-column
-					label="Tokens Claimable"
-					min-width="130px"
-					prop="totalTokens"
-				>
-					<template #default="{ row }">
+					<template
+						v-else-if="column.label === 'Tokens Claimable'"
+						#default="{ row }"
+					>
 						<span>
 							{{ row.amount / currentPrice }}
 						</span>
 					</template>
-				</el-table-column>
-				<el-table-column label="Tx Hash" min-width="100px" prop="txHash">
-					<template #default="{ row }">
+					<template v-else-if="column.label === 'Tx Hash'" #default="{ row }">
 						<a :href="`${txUrl}${row.txHash}`" target="_blank">
 							{{ shortenAddress(row.txHash) }}
 						</a>
 					</template>
-				</el-table-column>
-				<el-table-column
-					label="Block Number"
-					min-width="100px"
-					prop="timestamp"
-					sortable
-				>
-					<template #default="{ row }">
+					<template v-else-if="column.label === 'Block Number'" #default="{ row }">
 						<span>{{ row.timestamp }}</span>
 					</template>
 				</el-table-column>
 			</el-table>
+
+			<div class="col-12 d-flex justify-content-end flex-wrap mb-3 downloadCSV">
+				<download-excel
+					class="btn mr-3"
+					:data="json_data"
+					:fields="json_fields"
+					worksheet="Commitments"
+					name="commitments.xls"
+				>
+					Download CSV
+				</download-excel>
+			</div>
 		</div>
 		<div
 			slot="footer"
@@ -130,6 +102,7 @@
 				d-flex
 				justify-content-center justify-content-sm-between
 				flex-wrap
+				pagination-area
 			"
 		>
 			<div class>
@@ -155,6 +128,7 @@ import * as moment from 'moment'
 import { shortenAddress } from '@/util'
 import clientPaginationMixin from '@/components/Tables/PaginatedTables/clientPaginationMixin'
 import { BasePagination, BaseSwitch } from '@/components'
+import JsonExcel from 'vue-json-excel'
 
 export default {
 	components: {
@@ -165,6 +139,7 @@ export default {
 		EthImage,
 		BasePagination,
 		BaseSwitch,
+		DownloadExcel: JsonExcel,
 	},
 	mixins: [clientPaginationMixin],
 	props: {
@@ -197,6 +172,45 @@ export default {
 		return {
 			isAll: true,
 			tableData: [],
+			json_fields: {
+				address: 'address',
+				amount: 'amount',
+				claimable: 'claimable',
+				txHash: 'txHash',
+			},
+			json_data: [],
+			columns: [
+				{
+					label: 'Address',
+					width: '200px',
+					address: 'address',
+					sortable: false,
+				},
+				{
+					label: 'Amount Committed',
+					width: '150px',
+					address: 'commitment',
+					sortable: false,
+				},
+				{
+					label: 'Tokens Claimable',
+					width: '130px',
+					address: 'totalTokens',
+					sortable: false,
+				},
+				{
+					label: 'Tx Hash',
+					width: '100px',
+					address: 'txHash',
+					sortable: false,
+				},
+				{
+					label: 'Block Number',
+					width: '100px',
+					address: 'timestamp',
+					sortable: true,
+				},
+			],
 		}
 	},
 	computed: {
@@ -216,7 +230,6 @@ export default {
 	mounted() {
 		this.setTableData(this.commitments)
 	},
-
 	methods: {
 		shortenAddress(addr) {
 			return shortenAddress(addr, 8)
@@ -226,6 +239,15 @@ export default {
 		},
 		setTableData(data) {
 			this.tableData = data
+
+			data.forEach((element) => {
+				this.json_data.push({
+					address: element.address,
+					amount: element.amount,
+					claimable: element.amount / this.currentPrice,
+					txHash: element.txHash,
+				})
+			})
 		},
 		handleSwitch(isAll) {
 			if (isAll) {
@@ -242,4 +264,55 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+@media screen and (max-width: 768px) {
+	div.table-responsive.table-flush {
+		width: 100%;
+		overflow-x: scroll;
+	}
+	div.table-responsive.table-flush > div {
+		width: fit-content;
+	}
+	.rowperPageWidth {
+		width: 50%;
+	}
+	.bootstrap-switch {
+		width: 100px !important;
+		height: 100% !important;
+	}
+	.bootstrap-switch .bootstrap-switch-label {
+		width: 25px !important;
+		height: 25px !important;
+		border-radius: 50px;
+		top: 7px;
+		left: 80%;
+	}
+	.bootstrap-switch-handle-on {
+		margin-top: 7px;
+		margin-left: 15px;
+		font-size: 14px !important;
+	}
+	.bootstrap-switch-handle-off.bootstrap-switch-default {
+		margin-top: 7px;
+		margin-left: 15px;
+		font-size: 14px !important;
+	}
+	.el-table__header {
+		min-width: 1366px;
+	}
+	.el-table__body {
+		min-width: 1366px;
+	}
+	.downloadCSV {
+		display: none !important;
+	}
+	.pagination-area {
+		display: block !important;
+		text-align: center !important;
+	}
+	.pagination-area .pagination-no-border {
+		justify-content: center !important;
+		text-align: center !important;
+	}
+}
+</style>

@@ -115,7 +115,7 @@
 						</div>
 						<div class="col-md-6">
 							<div class="justify-content-center">
-								<img src="@/assets/images/VipList.svg" />
+								<img src="@/assets/svg/VipList.svg" />
 							</div>
 						</div>
 					</div>

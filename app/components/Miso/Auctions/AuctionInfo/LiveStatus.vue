@@ -5,13 +5,15 @@
 				<div
 					class="
 						d-flex
-						flex-sm-row flex-column
+						flex-sm-row flex-row
 						justify-content-between
 						mt-2
 						project-status_text
+						flex-wrap
+						options-wrapper
 					"
 				>
-					<div class="d-flex flex-column">
+					<div class="d-flex flex-column failed-options">
 						<span
 							class="
 								fs-1
@@ -30,7 +32,7 @@
 							</p>
 						</div>
 					</div>
-					<div class="d-flex flex-column">
+					<div class="d-flex flex-column failed-options">
 						<span class="fs-1 mb-1 text-center text-uppercase font-weight-bold">
 							amount raised:
 						</span>
@@ -39,7 +41,7 @@
 							{{ textCheck(marketInfo.paymentCurrency.symbol) }}
 						</p>
 					</div>
-					<div class="d-flex flex-column">
+					<div class="d-flex flex-column failed-options">
 						<span class="fs-1 mb-1 text-center text-uppercase font-weight-bold">
 							Remaining:
 						</span>
@@ -47,7 +49,7 @@
 							{{ percentRemaining }} %
 						</p>
 					</div>
-					<div class="d-flex flex-column">
+					<div class="d-flex flex-column failed-options">
 						<span
 							class="
 								fs-1
@@ -1277,6 +1279,22 @@ export default {
 .sale-token {
 	.form-group {
 		margin-bottom: 0 !important;
+	}
+}
+
+@media screen and (max-width: 768px) {
+	.failed-options {
+		align-items: flex-start !important;
+		margin-bottom: 15px;
+	}
+	.failed-options:nth-child(odd) {
+		min-width: 50%;
+	}
+	.failed-options:nth-child(even) {
+		min-width: 35%;
+	}
+	.options-wrapper {
+		margin-bottom: 180px;
 	}
 }
 </style>

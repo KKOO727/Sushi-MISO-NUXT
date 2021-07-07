@@ -7,15 +7,33 @@
 				:class="[statusColor]"
 				:style="{ left: startPosition + '%' }"
 			>
-				<span class="d-flex flex-column progress-status_text-box left">
+				<span
+					v-if="isNaN(startPosition) || startPosition < 50"
+					class="d-flex flex-column progress-status_text-box left"
+				>
+					<span class="text pl-2 text-uppercase font-weight-bold">min raise:</span>
+					<span class="fs-2 pl-2 text-white font-weight-bold no-whitespace">
+						{{ soft }} {{ marketInfo.paymentCurrency.symbol }}
+					</span>
 					<span
 						class="progress-status_text-line left"
 						:class="[getMode ? 'bg-dark' : 'bg-light']"
 					></span>
-					<span class="text pl-2 text-uppercase font-weight-bold">min raise:</span>
-					<span class="fs-2 pl-2 text-white font-weight-bold no-whitespace">
-						{{ soft }} ETH
+				</span>
+				<span
+					v-else
+					class="d-flex flex-column progress-status_text-box right"
+					:style="{ textAlign: 'right' }"
+				>
+					<span class="text pr-2 text-uppercase font-weight-bold">min raise:</span>
+					<span class="fs-2 pr-2 text-white font-weight-bold no-whitespace">
+						{{ soft }} {{ marketInfo.paymentCurrency.symbol }}
 					</span>
+					<span
+						class="progress-status_text-line right"
+						:class="[getMode ? 'bg-dark' : 'bg-light']"
+						:style="{ right: 0 }"
+					></span>
 				</span>
 			</span>
 			<!-- soft cap section -->
@@ -24,6 +42,23 @@
 				class="w-100 progress-status_line d-inline-block position-relative"
 				:class="[statusLightColor]"
 			>
+				<span
+					class="
+						d-flex
+						flex-column
+						progress-status_text-box
+						left
+						text-uppercase
+						font-weight-bold
+						current-price
+					"
+					:style="{ left: 0, top: '53px' }"
+				>
+					<span class="text pl-2 fs-1">auction token price:</span>
+					<span class="text-white pl-2 fs-2">
+						{{ salePrice }}
+					</span>
+				</span>
 				<span
 					class="bg-success fill position-absolute"
 					:class="[statusColor]"
@@ -39,18 +74,19 @@
 				>
 					<span v-if="progress > 51" class="font-weight-bold price-left">
 						<span class="pr-2 d-flex">
-							<div class="d-flex flex-column">
+							<!-- <div class="d-flex flex-column">
 								<span class="text pr-2 text-uppercase fs-1">Sale Price:</span>
 								<span class="text-white pr-2 text-uppercase fs-1">
 									{{ salePrice }}
 								</span>
-							</div>
+							</div> -->
 							<div class="d-flex flex-column">
 								<span class="text pl-2 text-right text-uppercase fs-1">
-									Tokens Committed:
+									total raised:
 								</span>
 								<span class="pl-2 fs-1 text-white text-right">
-									{{ marketCommitPercent }} %
+									{{ marketInfo.commitmentsTotal }}
+									{{ marketInfo.paymentCurrency.symbol }}
 								</span>
 							</div>
 						</span>
@@ -66,18 +102,19 @@
 							:class="[getMode ? 'bg-dark' : 'bg-light']"
 						></span>
 						<span class="pl-2 d-flex">
-							<div class="d-flex flex-column">
+							<!-- <div class="d-flex flex-column">
 								<span class="text pr-2 text-uppercase fs-1">Sale Price:</span>
 								<span class="text-white text-uppercase pr-2 fs-1">
 									{{ salePrice }}
 								</span>
-							</div>
+							</div> -->
 							<div class="d-flex flex-column">
-								<span class="text pl-2 text-right text-uppercase fs-1">
-									Tokens Committed:
+								<span class="text pr-2 text-left text-uppercase fs-1">
+									total raised:
 								</span>
-								<span class="pl-2 fs-1 text-white text-right">
-									{{ marketCommitPercent }} %
+								<span class="pr-2 fs-1 text-white text-left">
+									{{ marketInfo.commitmentsTotal }}
+									{{ marketInfo.paymentCurrency.symbol }}
 								</span>
 							</div>
 						</span>
@@ -92,7 +129,7 @@
 						max raise:
 					</span>
 					<span class="fs-2 pr-2 text-white font-weight-bold text-right">
-						{{ hard }} ETH
+						{{ hard }} {{ marketInfo.paymentCurrency.symbol }}
 					</span>
 					<span
 						class="progress-status_text-line rigth"
@@ -170,10 +207,8 @@ export default {
 			}
 		},
 		salePrice() {
-			return `1 ${this.textCheck(this.tokenInfo.symbol)} = ${toPrecision(
-				1 / this.marketInfo.rate,
-				2
-			)} ${this.textCheck(this.marketInfo.paymentCurrency.symbol)}`
+			return `${toPrecision(1 / this.marketInfo.rate, 5)} 
+				${this.textCheck(this.marketInfo.paymentCurrency.symbol)}`
 		},
 		soft() {
 			return this.marketInfo.goal
@@ -220,7 +255,7 @@ export default {
 
 <style lang="scss" scoped>
 .progress-status {
-	padding: 60px 0 52px 0;
+	padding: 110px 0 52px 0;
 	.text {
 		font-size: 11px;
 		@media screen and (max-width: 450px) {
@@ -286,12 +321,15 @@ export default {
 		height: 15px;
 		border-radius: 100%;
 		border: 1px solid #fff;
+		.progress-status_text-box {
+			bottom: 65px !important;
+		}
 	}
 	&_text {
 		&-box {
 			position: absolute;
 			bottom: 15px;
-			width: 100px;
+			width: 250px;
 			height: 50px;
 			@media screen and (max-width: 450px) {
 				span {
@@ -316,6 +354,8 @@ export default {
 			}
 			&.rigth {
 				right: 0;
+				bottom: -50px;
+				height: calc(94% + 50px);
 			}
 		}
 	}
@@ -333,5 +373,20 @@ export default {
 }
 .fs-1 {
 	font-size: 10px !important;
+}
+.current-price {
+	background: -webkit-linear-gradient(45deg, #f05240, #ba23ab);
+	background-clip: text;
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	@media screen and (max-width: 500px) {
+		margin-top: -2px;
+		span {
+			&:first-child {
+				font-size: 10px !important;
+			}
+			font-size: 10px !important;
+		}
+	}
 }
 </style>
