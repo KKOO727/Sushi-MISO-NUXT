@@ -19,23 +19,28 @@
 					py-2
 					cursor-pointer
 				"
-				:class="{ 'bg-primary': tokenType === 'ETH' }"
-				@click="onCurrencyChanged('ETH')"
+				:class="{ 'bg-primary': tokenType === nativeCurrency.symbol }"
+				@click="onCurrencyChanged(nativeCurrency.symbol)"
 			>
 				<span
 					:disabled="!tokensApproved"
 					inline
-					name="ETH"
+					:name="nativeCurrency.symbol"
 					class="m-0 p-0 font-weight-bold"
-					:class="{ 'text-white': tokenType === 'ETH' }"
+					:class="{ 'text-white': tokenType === nativeCurrency.symbol }"
 				>
 					<i
-						v-if="tokenType == 'ETH'"
+						v-if="tokenType == nativeCurrency.symbol"
 						class="far fa-circle fa-white-circle text-white"
 					></i>
 					<i v-else class="far fa-circle text-transparent"></i>
-					ETHEREUM
-					<svg-icon icon="ethereum" height="24" width="20" />
+					{{ nativeCurrency.name }}
+					<svg-icon
+						v-if="tokenType == 'ETH'"
+						icon="ethereum"
+						height="24"
+						width="20"
+					/>
 				</span>
 				<span :class="{ 'text-white': tokenType === 'ETH' }">Most Common</span>
 			</div>
@@ -204,6 +209,7 @@
 import { mapGetters } from 'vuex'
 import { isErc20Token } from '@/services/web3/erc20Token'
 import { dai, usdc, tether } from '@/constants/contracts'
+import { NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 
 export default {
 	props: {
@@ -215,7 +221,7 @@ export default {
 	data() {
 		return {
 			paymentCurrency: {
-				address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+				address: NATIVE_CURRENCY_ADDRESS,
 				name: 'Ethereum',
 				symbol: 'ETH',
 				decimals: 18,
@@ -229,13 +235,14 @@ export default {
 	computed: {
 		...mapGetters({
 			currentProvidersNetworkId: 'ethereum/currentProvidersNetworkId',
+			nativeCurrency: 'ethereum/nativeCurrency',
 		}),
 		tokenType() {
 			if (this.customToken.length > 0) return 'CUSTOM'
 
 			switch (this.paymentCurrency.address) {
-				case '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE':
-					return 'ETH'
+				case NATIVE_CURRENCY_ADDRESS:
+					return this.nativeCurrency.symbol
 				case usdc.address[this.currentProvidersNetworkId]:
 					return 'USDC'
 				case tether.address[this.currentProvidersNetworkId]:
@@ -254,6 +261,11 @@ export default {
 				this.updateCustomCurrency(newValue)
 			}
 		},
+	},
+	mounted() {
+		this.paymentCurrency.name = this.nativeCurrency.name
+		this.paymentCurrency.symbol = this.nativeCurrency.symbol
+		this.paymentCurrency.decimals = this.nativeCurrency.decimals
 	},
 	methods: {
 		async updateCustomCurrency(currency) {
@@ -291,11 +303,11 @@ export default {
 			this.errorMessage = null
 			this.success = false
 
-			if (currency === 'ETH') {
-				this.paymentCurrency.address = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-				this.paymentCurrency.name = 'Ethereum'
-				this.paymentCurrency.symbol = 'ETH'
-				this.paymentCurrency.decimals = 18
+			if (currency === this.nativeCurrency.symbol) {
+				this.paymentCurrency.address = NATIVE_CURRENCY_ADDRESS
+				this.paymentCurrency.name = this.nativeCurrency.name
+				this.paymentCurrency.symbol = this.nativeCurrency.symbol
+				this.paymentCurrency.decimals = this.nativeCurrency.decimals
 			} else if (currency === 'USDC') {
 				this.paymentCurrency.address = usdc.address[this.currentProvidersNetworkId]
 				this.paymentCurrency.name = 'USD Coin'

@@ -503,6 +503,68 @@
 						</validation-observer>
 					</div>
 
+					<!---- Auction Wallet !---->
+					<hr />
+					<div class="hero-section mt-4 pt-3 pb-2 position-relative">
+						<span
+							class="
+								text-uppercase text-secondary
+								font-weight-bold
+								border-bottom
+								pb-2
+								fs-4
+								h-100
+							"
+						>
+							Auction Wallet
+						</span>
+						<p class="mt-4">The auction funds raised will be sent to this address.</p>
+					</div>
+					<div class="px-md-5">
+						<validation-observer v-slot="{ invalid }">
+							<form class="needs-validation" @submit.prevent="updateAuctionWallet">
+								<div class="row">
+									<div class="col-md-2" />
+									<div class="col-md-5 mt-3">
+										<base-input
+											v-model="wallet"
+											name="Auction Wallet Address"
+											placeholder=""
+											type="text"
+											rules="required|isAddress"
+										></base-input>
+									</div>
+									<div class="col-md-* mt-2">
+										<base-button
+											class="float-right"
+											type="primary"
+											native-type="submit"
+											:disabled="invalid"
+											:loading="waitingForWallet"
+										>
+											Update
+										</base-button>
+									</div>
+								</div>
+							</form>
+						</validation-observer>
+					</div>
+					<div class="hero-section pt-3 pb-2 position-relative">
+						<p>Or you can set up the liquidity launcher.</p>
+					</div>
+					<div class="row px-md-5 col-md-12">
+						<div class="col-md-2" />
+						<div class="col-md-5 mt-3">
+							<base-button
+								class="float-center"
+								type="primary"
+								@click="setupLiquidityPool"
+							>
+								Set up Liquidity Pool
+							</base-button>
+						</div>
+					</div>
+
 					<!---- Permission List !---->
 					<hr />
 					<div
@@ -720,8 +782,8 @@ import {
 	sendTransactionAndWait,
 	toWei,
 } from '@/services/web3/base'
+import { ZERO_ADDRESS } from '@/constants/networks'
 import Swal from 'sweetalert2'
-import { zeroAddress } from '@/util/web3'
 
 export default {
 	name: 'AuctionAdminInfo',
@@ -756,6 +818,8 @@ export default {
 				listOwner: '',
 				points: [],
 			},
+			wallet: '',
+			waitingForWallet: false,
 		}
 	},
 	computed: {
@@ -764,7 +828,7 @@ export default {
 		}),
 		isValidListAddress() {
 			return (
-				this.list.address !== zeroAddress && web3.utils.isAddress(this.list.address)
+				this.list.address !== ZERO_ADDRESS && web3.utils.isAddress(this.list.address)
 			)
 		},
 	},
@@ -811,6 +875,11 @@ export default {
 				this.document[name] = data
 			}
 		})
+
+		// Wallet
+		const walletMethod = [{ methodName: 'wallet' }]
+		const [wallet] = await makeBatchCall(this.contractInstance, walletMethod)
+		this.wallet = wallet
 
 		// PointList
 		const pointListMethod = [{ methodName: 'pointList' }]
@@ -917,6 +986,18 @@ export default {
 		},
 		removePoint(index) {
 			this.pointsListModel.points.splice(index, 1)
+		},
+		updateAuctionWallet() {
+			this.waitingForWallet = true
+
+			const method = this.contractInstance.methods.setAuctionWallet(this.wallet)
+
+			sendTransactionAndWait(method, { from: this.coinbase }, (_) => {
+				this.waitingForWallet = false
+			})
+		},
+		setupLiquidityPool() {
+			window.open(`/factory/liquidity?auction=${this.auctionAddress}`, '_self')
 		},
 	},
 }

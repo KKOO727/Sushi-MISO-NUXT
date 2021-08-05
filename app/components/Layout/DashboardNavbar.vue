@@ -207,7 +207,7 @@
 						style="overflow-y: scroll; height: 700px"
 					>
 						<button
-							v-for="(item, index) in ChainIDs"
+							v-for="(item, index) in activeChainIds"
 							:key="index + '_a'"
 							:disabled="+item.chainId === networkId || item.disabled"
 							class="
@@ -242,7 +242,7 @@
 							We'll be launching on these networks soon.
 						</div>
 						<button
-							v-for="(item, index) in PendingIDs"
+							v-for="(item, index) in inactiveChainIds"
 							:key="index + '_b'"
 							:disabled="+item.chainId === networkId || item.disabled"
 							class="
@@ -280,7 +280,7 @@
 </template>
 <script>
 import { mapGetters, mapActions, mapMutations } from 'vuex'
-import { NETWORK_ICON, NETWORK_LABEL } from '@/constants/networks'
+import { NETWORK_ICON, NETWORK_LABEL, CHAIN_IDS } from '@/constants/networks'
 import { BaseNav, BaseSwitch, Modal, NetworkModal } from '@/components'
 import { ZoomXTransition } from 'vue2-transitions'
 import EthImage from '@/components/Miso/EthIdentication/EthImage.vue'
@@ -315,183 +315,6 @@ export default {
 			showNetworkModal: false,
 			networkIcons: [],
 			networkLables: [],
-			ChainIDs: [
-				{
-					chainId: '0x1',
-					chainName: 'Ethereum',
-					nativeCurrency: {
-						name: 'Ethereum',
-						symbol: 'ETH',
-						decimals: 18,
-					},
-					rpcUrls: ['https://mainnet.infura.io/v3'],
-					blockExplorerUrls: ['https://etherscan.com'],
-				},
-				{
-					chainId: '0x3',
-					chainName: 'Ropsten',
-					nativeCurrency: {
-						name: 'Ethereum',
-						symbol: 'ETH',
-						decimals: 18,
-					},
-					rpcUrls: ['https://ropsten.infura.io/v3'],
-					blockExplorerUrls: ['https://ropsten.etherscan.com'],
-				},
-				{
-					chainId: '0x4',
-					chainName: 'Rinkeby',
-					nativeCurrency: {
-						name: 'Ethereum',
-						symbol: 'ETH',
-						decimals: 18,
-					},
-					rpcUrls: ['https://rinkeby.infura.io/v3'],
-					blockExplorerUrls: ['https://rinkeby.etherscan.com'],
-				},
-				{
-					chainId: '0x5',
-					chainName: 'Görli',
-					nativeCurrency: {
-						name: 'Ethereum',
-						symbol: 'ETH',
-						decimals: 18,
-					},
-					rpcUrls: ['https://goerli.infura.io/v3'],
-					blockExplorerUrls: ['https://goerli.etherscan.com'],
-				},
-				{
-					chainId: '0x2A',
-					chainName: 'Kovan',
-					nativeCurrency: {
-						name: 'Ethereum',
-						symbol: 'ETH',
-						decimals: 18,
-					},
-					rpcUrls: ['https://kovan.infura.io/v3'],
-					blockExplorerUrls: ['https://kovan.etherscan.com'],
-				},
-				{
-					chainId: '0x61',
-					chainName: 'Binance SC Testnet',
-					nativeCurrency: {
-						name: 'Binance Coin',
-						symbol: 'BNB',
-						decimals: 18,
-					},
-					rpcUrls: ['https://bsc-dataseed.binance.org'],
-					blockExplorerUrls: ['https://bscscan.com'],
-				},
-				{
-					chainId: '0x13881',
-					chainName: 'Matic Testnet',
-					nativeCurrency: {
-						name: 'Matic',
-						symbol: 'MATIC',
-						decimals: 18,
-					},
-					rpcUrls: ['https://rpc-mumbai.matic.today'],
-					blockExplorerUrls: ['https://explorer-mumbai.maticvigil.com'],
-				},
-			],
-			PendingIDs: [
-				{
-					chainId: '0xfa',
-					chainName: 'Fantom',
-					nativeCurrency: {
-						name: 'Fantom',
-						symbol: 'FTM',
-						decimals: 18,
-					},
-					rpcUrls: ['https://rpcapi.fantom.network'],
-					blockExplorerUrls: ['https://ftmscan.com'],
-					disabled: true,
-				},
-				{
-					chainId: '0x38',
-					chainName: 'Binance Smart Chain',
-					nativeCurrency: {
-						name: 'Binance Coin',
-						symbol: 'BNB',
-						decimals: 18,
-					},
-					rpcUrls: ['https://bsc-dataseed.binance.org'],
-					blockExplorerUrls: ['https://bscscan.com'],
-					disabled: true,
-				},
-				{
-					chainId: '0x89',
-					chainName: 'Matic',
-					nativeCurrency: {
-						name: 'Matic',
-						symbol: 'MATIC',
-						decimals: 18,
-					},
-					rpcUrls: ['https://rpc-mainnet.maticvigil.com'], // ['https://matic-mainnet.chainstacklabs.com/'],
-					blockExplorerUrls: ['https://explorer-mainnet.maticvigil.com'],
-					disabled: true,
-				},
-				{
-					chainId: '0x80',
-					chainName: 'Heco',
-					nativeCurrency: {
-						name: 'Heco Token',
-						symbol: 'HT',
-						decimals: 18,
-					},
-					rpcUrls: ['https://http-mainnet.hecochain.com'],
-					blockExplorerUrls: ['https://hecoinfo.com'],
-					disabled: true,
-				},
-				{
-					chainId: '0x64',
-					chainName: 'xDai',
-					nativeCurrency: {
-						name: 'xDai Token',
-						symbol: 'xDai',
-						decimals: 18,
-					},
-					rpcUrls: ['https://rpc.xdaichain.com'],
-					blockExplorerUrls: ['https://blockscout.com/poa/xdai'],
-					disabled: true,
-				},
-				{
-					chainId: '0x63564C40',
-					chainName: 'Harmony One',
-					nativeCurrency: {
-						name: 'One Token',
-						symbol: 'ONE',
-						decimals: 18,
-					},
-					rpcUrls: ['https://api.s0.t.hmny.io'],
-					blockExplorerUrls: ['https://explorer.harmony.one/'],
-					disabled: true,
-				},
-				{
-					chainId: '0xA86A',
-					chainName: 'Avalanche',
-					nativeCurrency: {
-						name: 'Avalanche Token',
-						symbol: 'AVAX',
-						decimals: 18,
-					},
-					rpcUrls: ['https://api.avax.network/ext/bc/C/rpc'],
-					blockExplorerUrls: ['https://explorer.avax.network'],
-					disabled: true,
-				},
-				{
-					chainId: '0x42',
-					chainName: 'OKEx',
-					nativeCurrency: {
-						name: 'OKEx Token',
-						symbol: 'OKT',
-						decimals: 18,
-					},
-					rpcUrls: ['https://exchainrpc.okex.org'],
-					blockExplorerUrls: ['https://www.oklink.com/okexchain'],
-					disabled: true,
-				},
-			],
 		}
 	},
 	computed: {
@@ -501,6 +324,12 @@ export default {
 			isMetamask: 'ethereum/isMetamask',
 			mode: 'theme/getMode',
 		}),
+		activeChainIds() {
+			return CHAIN_IDS.filter((chainId) => !chainId.disabled)
+		},
+		inactiveChainIds() {
+			return CHAIN_IDS.filter((chainId) => chainId.disabled)
+		},
 		isRTL() {
 			return this.$rtl.isRTL
 		},
@@ -598,7 +427,7 @@ export default {
 			this.showMenu = !this.showMenu
 		},
 		async changeEthChain(index) {
-			const chain = this.ChainIDs[index]
+			const chain = this.activeChainIds[index]
 			try {
 				await ethereum.request({
 					method: 'wallet_switchEthereumChain',

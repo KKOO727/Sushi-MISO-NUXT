@@ -165,7 +165,8 @@ import { Table, TableColumn } from 'element-ui'
 import { BaseInput, BasePagination } from '@/components'
 import { fromWei, makeBatchCall } from '@/services/web3/base'
 import { getContractInstance as misoHelperContract } from '@/services/web3/misoHelper'
-import { zeroAddress } from '@/util/web3'
+import { ZERO_ADDRESS } from '@/constants/networks'
+
 import BigNumber from 'bignumber.js'
 
 // TODO data structure needs to be updated if this action is right one
@@ -210,7 +211,7 @@ export default {
 			const methods = [
 				{
 					methodName: 'getUserPoolsInfos',
-					args: [this.coinbase || zeroAddress],
+					args: [this.coinbase || ZERO_ADDRESS],
 				},
 			]
 			const [userPoolsInfos] = await makeBatchCall(misoHelperContract(), methods)

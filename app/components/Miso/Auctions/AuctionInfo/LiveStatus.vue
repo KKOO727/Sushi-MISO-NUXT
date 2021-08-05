@@ -335,7 +335,7 @@
 								:loading="loading"
 								@click="invest"
 							>
-								commit {{ marketInfo.paymentCurrency.symbol }}
+								Commit {{ marketInfo.paymentCurrency.symbol }}
 							</base-button>
 							<base-button
 								v-else
@@ -345,7 +345,7 @@
 								:loading="loading"
 								@click="approve"
 							>
-								approve {{ marketInfo.paymentCurrency.symbol }}
+								Approve {{ marketInfo.paymentCurrency.symbol }}
 							</base-button>
 						</div>
 					</div>
@@ -356,6 +356,7 @@
 					class="row no-gutters"
 				>
 					<div class="d-flex flex-column flex-grow-1">
+						<!-- auction successed !-->
 						<div v-if="status.auctionSuccessful">
 							<!-- not finalized -->
 							<div v-if="!marketInfo.finalized">
@@ -367,10 +368,7 @@
 									<div class="text-center fs-3 mt-2 mb-4">
 										Your auction was successful
 									</div>
-									<div
-										v-if="!marketInfo.finalized"
-										class="withdraw d-flex justify-content-center"
-									>
+									<div class="withdraw d-flex justify-content-center">
 										<base-button
 											class="
 												btn
@@ -387,31 +385,53 @@
 										</base-button>
 									</div>
 								</div>
+								<!-- default !-->
 								<div v-else>
 									<div class="font-weight-bold text-white fs-4 text-center">
 										Auction Finished Successfully
 									</div>
 									<div class="font-weight-bold text-center mb-4">
-										you are able to claim {{ userTokensClaimable }}
-										{{ textCheck(tokenInfo.symbol) }} when it is finalized
+										{{ claimTokenText }}
 									</div>
 								</div>
 							</div>
-							<!-- claim -->
-							<div v-else-if="!isClaimed">
+							<!-- finalized !-->
+							<div v-else>
 								<div class="font-weight-bold text-white fs-4 text-center">
 									Auction Finished Successfully
 								</div>
-								<div class="font-weight-bold text-center mb-4">
-									you are able to claim {{ userTokensClaimable }}
-									{{ textCheck(tokenInfo.symbol) }}
+								<div class="mb-4">
+									<!-- claim -->
+									<div class="font-weight-bold text-center">
+										{{ claimTokenText }}
+									</div>
+									<!-- withdraw LP -->
+									<div v-if="canWithdrawLP" class="font-weight-bold text-center">
+										{{ launcherLPBalanceText }}
+									</div>
 								</div>
-
-								<div
-									v-if="marketInfo.finalized"
-									class="withdraw d-flex justify-content-center"
-								>
+								<div class="withdraw d-flex justify-content-center">
+									<!-- claim -->
 									<base-button
+										v-if="!isClaimed"
+										class="
+											btn
+											finalize
+											bg-orange
+											text-uppercase text-white
+											font-weight-bold
+											cursor-pointer
+											mr-3
+										"
+										:disabled="!canClaim"
+										:loading="loading"
+										@click="withdraw"
+									>
+										Claim
+									</base-button>
+									<!-- withdraw LP -->
+									<base-button
+										v-if="canWithdrawLP"
 										class="
 											btn
 											finalize
@@ -420,58 +440,25 @@
 											font-weight-bold
 											cursor-pointer
 										"
-										:disabled="!canClaim"
-										:loading="loading"
-										@click="withdraw"
+										:disabled="!withdrawLPUnlocked"
+										:loading="waitingForWithdrawLP"
+										@click="withdrawLP"
 									>
-										claim
+										Withdraw LP
 									</base-button>
-								</div>
-
-								<div v-else class="text-center fs-3 mt-2 mb-4">
-									Auction hasn't been finalized.
-								</div>
-							</div>
-							<!-- claimed user -->
-							<div v-if="isClaimed" class="finalize_bg-user">
-								<div class="w-100">
-									<div class="font-weight-bold text-white fs-4 text-center">
-										Congratulations!
-									</div>
-									<div class="font-weight-bold text-center mb-4">
-										Your tokens have been claimed
-									</div>
-
-									<!-- <div
-										v-if="marketInfo.finalized"
-										class="withdraw d-flex justify-content-center"
-									> -->
-									<!-- needs transaction link -->
-									<!-- <base-button
-											class="
-												btn
-												finalize
-												bg-orange
-												text-uppercase text-white
-												font-weight-bold
-												cursor-pointer
-											"
-										>
-											view transaction
-										</base-button> -->
-									<!-- </div> -->
 								</div>
 							</div>
 						</div>
-						<!-- withdraw -->
+						<!-- action failed -->
 						<div v-else class="center-status">
 							<div class="font-weight-bold text-white fs-4 text-center mb-2">
 								Auction Failed to Reach a Target
 							</div>
+							<!-- finalized !-->
 							<div v-if="marketInfo.finalized">
 								<div class="font-weight-bold text-center mb-4">
-									you are able to withdraw {{ userCommitments }}
-									{{ marketInfo.paymentCurrency.symbol }}
+									You are able to withdraw {{ userCommitments }}
+									{{ marketInfo.paymentCurrency.symbol }} now
 								</div>
 								<div class="withdraw d-flex justify-content-center">
 									<base-button
@@ -484,19 +471,18 @@
 											cursor-pointer
 										"
 										:loading="loading"
-										:disabled="parseFloat(userInfo.commitments) === 0"
+										:disabled="!canWithdraw"
 										@click="withdraw"
 									>
-										withdraw
+										Withdraw
 									</base-button>
 								</div>
 							</div>
+							<!-- not finalized -->
 							<div v-else>
+								<!-- admin privileges -->
 								<div v-if="canFinalize">
-									<div
-										v-if="!marketInfo.finalized"
-										class="withdraw d-flex justify-content-center"
-									>
+									<div class="withdraw d-flex justify-content-center">
 										<base-button
 											class="
 												btn
@@ -509,12 +495,13 @@
 											:loading="loading"
 											@click="finalizeAuction"
 										>
-											finalize
+											Finalize
 										</base-button>
 									</div>
 								</div>
+								<!-- default !-->
 								<div v-else class="font-weight-bold text-center mb-4">
-									you are able to withdraw {{ userCommitments }}
+									You are able to withdraw {{ userCommitments }}
 									{{ marketInfo.paymentCurrency.symbol }} when it is finalized
 								</div>
 							</div>
@@ -529,6 +516,9 @@
 <script>
 // import BigNumber from "bignumber.js"
 import { mapGetters, mapActions } from 'vuex'
+import BigNumber from 'bignumber.js'
+import * as moment from 'moment'
+
 import { sendTransactionAndWait, makeBatchCall } from '@/services/web3/base'
 import { getContractInstance as misoHelperContract } from '@/services/web3/misoHelper'
 import { getContractInstance as getAuctionContract } from '@/services/web3/auctions/auction'
@@ -542,7 +532,7 @@ import {
 	toNDecimals,
 	toDecimalPlaces,
 } from '@/util'
-import BigNumber from 'bignumber.js'
+import { NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 import CrowdProgress from '~/components/Miso/Auctions/Details/CrowdProgress'
 import DutchProgress from '~/components/Miso/Auctions/Details/DutchProgress'
 import BatchProgress from '~/components/Miso/Auctions/Details/BatchProgress'
@@ -561,11 +551,15 @@ export default {
 			type: [Object, Array],
 			required: true,
 		},
+		marketInfo: {
+			type: [Object, Array],
+			required: true,
+		},
 		tokenInfo: {
 			type: [Object, Array],
 			required: true,
 		},
-		marketInfo: {
+		liquidityInfo: {
 			type: [Object, Array],
 			required: true,
 		},
@@ -592,12 +586,13 @@ export default {
 			},
 			allowance: 0,
 			loading: false,
+			waitingForWithdrawLP: false,
 			upcomingVideo: true,
 		}
 	},
 	computed: {
-		...mapGetters({ mode: 'theme/getMode' }),
 		...mapGetters({
+			mode: 'theme/getMode',
 			coinbase: 'ethereum/coinbase',
 			// TODO: add user's balance
 			// accountBalance: "ethereum/accountBalance",
@@ -605,9 +600,9 @@ export default {
 		}),
 		// TODO needs to be set if user is author of auction or not
 		canFinalize() {
+			if (this.liquidityInfo.liquidityStatus === 1) return true
 			if (this.userInfo.isAdmin) return true
-			if (!this.marketInfo.liquidity.liquidityTemplate) return false
-			return this.marketInfo.liquidity.liquidityTemplate > 0
+			return false
 		},
 		isAuthor() {
 			return false
@@ -702,7 +697,6 @@ export default {
 		},
 		maxInvestAmount() {
 			if (this.status.type === 'batch') {
-				console.log('accountBalance:', this.accountBalance)
 				return this.accountBalance
 			}
 
@@ -737,10 +731,7 @@ export default {
 			},
 		},
 		isApproved() {
-			if (
-				this.marketInfo.paymentCurrency.addr ===
-				'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-			) {
+			if (this.marketInfo.paymentCurrency.addr === NATIVE_CURRENCY_ADDRESS) {
 				return true
 			}
 			return (
@@ -765,7 +756,7 @@ export default {
 			return progress
 		},
 		crowdProgress() {
-			const hard = this.marketInfo.totalTokens / this.marketInfo.rate
+			const hard = this.marketInfo.totalTokens * this.marketInfo.rate
 			const commitmentsTotal = this.marketInfo.commitmentsTotal
 
 			const d1 = hard
@@ -794,15 +785,48 @@ export default {
 			return toDecimals(this.userInfo.tokensClaimable)
 		},
 		canClaim() {
-			return this.userInfo.tokensClaimable > 0
+			return BigNumber(this.userInfo.tokensClaimable).isGreaterThan(0)
 		},
 		canWithdraw() {
-			return this.userInfo.commitments > 0
+			return BigNumber(this.userInfo.commitments).isGreaterThan(0)
 		},
 		isClaimed() {
-			const claimed = parseFloat(this.userInfo.claimed)
-			const tokensClaimable = parseFloat(this.userInfo.tokensClaimable)
-			return claimed > 0 && tokensClaimable === 0
+			// return true
+			return (
+				BigNumber(this.userInfo.claimed).isGreaterThan(0) &&
+				BigNumber(this.userInfo.tokensClaimable).isZero()
+			)
+		},
+		claimTokenText() {
+			if (!this.marketInfo.finalized) {
+				return `You are able to claim ${this.userTokensClaimable} ${this.textCheck(
+					this.tokenInfo.symbol
+				)} when it is finalized`
+			}
+			if (this.isClaimed) {
+				return `Your ${this.textCheck(this.tokenInfo.symbol)} has been claimed`
+			}
+			return `You are able to claim ${this.userTokensClaimable} ${this.textCheck(
+				this.tokenInfo.symbol
+			)} now`
+		},
+		canWithdrawLP() {
+			return (
+				this.liquidityInfo.isAdmin &&
+				this.liquidityInfo.liquidityStatus === 2 &&
+				BigNumber(this.liquidityInfo.lpTokenBalance).isGreaterThan(0)
+			)
+		},
+		withdrawLPUnlocked() {
+			return this.liquidityInfo.launcherInfo.unlock
+				? Date.now() >= this.liquidityInfo.launcherInfo.unlock * 1000
+				: false
+		},
+		launcherLPBalanceText() {
+			const date = new Date(this.liquidityInfo.launcherInfo.unlock * 1000)
+			return `You have ${
+				this.liquidityInfo.lpTokenBalance
+			} LP tokens locked up until ${moment(date).format('LLLL')}`
 		},
 	},
 	watch: {
@@ -835,7 +859,7 @@ export default {
 		if (this.coinbase) {
 			const paymentTokenAddress = this.marketInfo.paymentCurrency.addr
 			let balance = 0
-			if (paymentTokenAddress !== '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE') {
+			if (paymentTokenAddress !== NATIVE_CURRENCY_ADDRESS) {
 				const methods = [{ methodName: 'balanceOf', args: [this.coinbase] }]
 				const [balanceOf] = await makeBatchCall(
 					erc20TokenContract(paymentTokenAddress),
@@ -895,14 +919,26 @@ export default {
 			this.finalize.user = true
 			// }
 		},
+		withdrawLP() {
+			this.waitingForWithdrawLP = true
+
+			const method = postAuctionLauncherContract(
+				this.marketInfo.wallet
+			).methods.withdrawLPTokens()
+
+			sendTransactionAndWait(method, { from: this.coinbase }, (receipt) => {
+				if (receipt.status) {
+					// eslint-disable-next-line vue/no-mutating-props
+					this.liquidityInfo.lpTokenBalance = 0
+				}
+				this.waitingForWithdrawLP = false
+			})
+		},
 		async finalizeAuction() {
 			this.loading = true
 
 			let method
-			if (
-				this.marketInfo.liquidity.liquidityTemplate &&
-				this.marketInfo.liquidity.liquidityTemplate > 0
-			) {
+			if (this.liquidityInfo.liquidityStatus === 1) {
 				method = postAuctionLauncherContract(
 					this.marketInfo.wallet
 				).methods.finalize()
@@ -910,12 +946,22 @@ export default {
 				method = this.contractInstance.methods.finalize()
 			}
 
-			await sendTransactionAndWait(method, { from: this.coinbase }, (receipt) => {
-				if (receipt.status) {
-					this.$emit('auctionFinalized')
+			await sendTransactionAndWait(
+				method,
+				{ from: this.coinbase },
+				async (receipt) => {
+					if (receipt.status) {
+						this.$emit('auctionFinalized')
+					}
+					if (receipt.blockNumber) {
+						const block = await web3.eth.getBlock(receipt.blockNumber)
+						// eslint-disable-next-line vue/no-mutating-props
+						this.liquidityInfo.launcherInfo.unlock =
+							block.timestamp + this.liquidityInfo.launcherInfo.locktime
+					}
+					this.loading = false
 				}
-				this.loading = false
-			})
+			)
 
 			this.finalize.user = true
 		},
@@ -963,10 +1009,7 @@ export default {
 			this.loading = true
 			let method
 			let value = 0
-			if (
-				this.marketInfo.paymentCurrency.addr ===
-				'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-			) {
+			if (this.marketInfo.paymentCurrency.addr === NATIVE_CURRENCY_ADDRESS) {
 				method = this.contractInstance.methods.commitEth(this.coinbase, true)
 				value = to18Decimals(this.selectedTokenQuantity)
 			} else {

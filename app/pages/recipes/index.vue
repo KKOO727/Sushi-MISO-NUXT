@@ -29,7 +29,9 @@
 							</div>
 							<div>
 								<span class="h6 surtitle text-muted">Minimum deployment fee</span>
-								<span class="d-block h4">{{ deploymentFee }} ETH</span>
+								<span class="d-block h4">
+									{{ deploymentFee }} {{ nativeCurrency.symbol }}
+								</span>
 							</div>
 						</card>
 					</div>
@@ -62,6 +64,7 @@ export default {
 	computed: {
 		...mapGetters({
 			currentProvidersNetworkId: 'ethereum/currentProvidersNetworkId',
+			nativeCurrency: 'ethereum/nativeCurrency',
 		}),
 	},
 	mounted() {

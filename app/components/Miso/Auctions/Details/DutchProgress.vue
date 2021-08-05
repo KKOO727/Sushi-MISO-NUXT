@@ -268,7 +268,7 @@ export default {
 				return this.progress - 3.2
 			}
 
-			return this.progress - 1
+			return this.progress
 		},
 		tokenPrice() {
 			return toPrecision(

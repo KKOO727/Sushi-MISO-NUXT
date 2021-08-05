@@ -165,6 +165,7 @@ import { mapGetters, mapActions } from 'vuex'
 import { DatePicker, TimeSelect } from 'element-ui'
 import { getContractInstance as erc20Contract } from '@/services/web3/erc20Token'
 import { misoMarket as misoMarketConfig } from '@/constants/contracts'
+import { NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 import { makeBatchCall } from '@/services/web3/base'
 import { toDecimals, toDecimalPlaces, multiplyNumbers } from '@/util'
 import { duration } from '@/mixins/duration.js'
@@ -199,10 +200,7 @@ export default {
 			return this.initModel
 		},
 		isETH() {
-			return (
-				this.model.paymentCurrency.address ===
-				'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-			)
+			return this.model.paymentCurrency.address === NATIVE_CURRENCY_ADDRESS
 		},
 		paymentType() {
 			return this.isETH ? 'ETH' : 'ERC20'

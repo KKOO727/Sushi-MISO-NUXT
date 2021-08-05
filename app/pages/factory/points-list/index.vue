@@ -216,10 +216,11 @@
 import { mapGetters } from 'vuex'
 import { BaseDivider, PointlistWizard, WizardTab, Modal } from '@/components'
 import { tokenFactory } from '@/constants/contracts'
+import { NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 import { Vue } from 'vue-property-decorator'
 import { ZoomYTransition } from 'vue2-transitions'
-import Notificatoin from '@/components/Miso/Factory/Liquidity/sidebarNotification'
 
+import Notificatoin from '@/components/Miso/Factory/Liquidity/sidebarNotification'
 import FirstStep from '@/components/Miso/PointsList/FirstStep'
 import SecondStep from '@/components/Miso/PointsList/SecondStep.vue'
 import ThirdStep from '@/components/Miso/PointsList/ThirdStep.vue'
@@ -253,7 +254,7 @@ export default {
 				points: [],
 				auction: {
 					payment_currency: {
-						address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+						address: NATIVE_CURRENCY_ADDRESS,
 						name: 'Ethereum',
 						symbol: 'ETH',
 						decimals: 18,
@@ -396,7 +397,7 @@ export default {
 				points: [],
 				auction: {
 					payment_currency: {
-						address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+						address: NATIVE_CURRENCY_ADDRESS,
 						name: 'Ethereum',
 						symbol: 'ETH',
 						decimals: 18,

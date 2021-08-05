@@ -1,5 +1,10 @@
 import Web3 from 'web3'
-import { EXPLORERS, RIGHT_NETWORKS, DEFAULT_NETWORK } from '@/constants/networks'
+import {
+	EXPLORERS,
+	RIGHT_NETWORKS,
+	DEFAULT_NETWORK,
+	CHAIN_IDS,
+} from '@/constants/networks'
 import walletProvider from '../services/walletProvider'
 
 export const state = () => ({
@@ -13,6 +18,11 @@ export const state = () => ({
 		tx: null,
 	},
 	gasPrice: 0,
+	nativeCurrency: {
+		name: null,
+		symbol: null,
+		decimals: null,
+	},
 })
 
 export const mutations = {
@@ -21,6 +31,13 @@ export const mutations = {
 	},
 	SET_NETWORK: (state, networkId) => {
 		state.networkId = parseInt(networkId)
+
+		const chainId = CHAIN_IDS.find(
+			(chainId) => parseInt(chainId.chainId) === state.networkId
+		)
+		if (chainId) {
+			state.nativeCurrency = chainId.nativeCurrency
+		}
 	},
 	SET_LOADING: (state, loading) => {
 		state.loading = loading
@@ -112,6 +129,10 @@ export const getters = {
 
 	networkId: (state) => {
 		return state.networkId
+	},
+
+	nativeCurrency: (state) => {
+		return state.nativeCurrency
 	},
 
 	defaultNetworkId: (state) => {
