@@ -245,15 +245,10 @@ import {
 import { getContractInstance as crowdsaleContract } from '@/services/web3/auctions/crowdsale'
 import { getContractInstance as batchAuctionContract } from '@/services/web3/auctions/batch'
 import { makeBatchCall } from '@/services/web3/base'
-import {
-	toDecimals,
-	toPrecision,
-	to18Decimals,
-	toNDecimals,
-	zeroAddress,
-} from '@/util'
+import { toDecimals, toPrecision, to18Decimals, toNDecimals } from '@/util'
 import { mapGetters } from 'vuex'
 import { inpidatorTheme } from '@/mixins/auctionIndicator'
+import { ZERO_ADDRESS, NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 
 // import CrowdProgress from '~/components/Miso/Auctions/Specials/CrowdProgress'
 // import DutchProgress from '~/components/Miso/Auctions/Specials/DutchIndicator'
@@ -330,7 +325,12 @@ export default {
 				endTime: 0,
 				currentPrice: 0,
 				totalTokensCommitted: 0,
-				paymentCurrency: 'ETH',
+				paymentCurrency: {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					name: 'ETHEREUM',
+					symbol: 'ETH',
+					decimals: 18,
+				},
 				hasPointList: false,
 				pointListAddress: '',
 				totalTokens: 0,
@@ -364,7 +364,10 @@ export default {
 		}
 	},
 	computed: {
-		...mapGetters({ mode: 'theme/getMode' }),
+		...mapGetters({
+			mode: 'theme/getMode',
+			nativeCurrency: 'ethereum/nativeCurrency',
+		}),
 		computedDescriptionClass() {
 			if (this.mode) {
 				return 'auction-description-white'
@@ -436,7 +439,7 @@ export default {
 		isPrivate() {
 			return (
 				this.marketInfo.hasPointList &&
-				this.marketInfo.pointListAddress !== zeroAddress
+				this.marketInfo.pointListAddress !== ZERO_ADDRESS
 			)
 		},
 		sliderMax() {
@@ -639,7 +642,15 @@ export default {
 			const methods = [{ methodName: 'getDutchAuctionInfo', args: [this.auction] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
@@ -700,7 +711,15 @@ export default {
 			const methods = [{ methodName: 'getCrowdsaleInfo', args: [this.auction] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
@@ -735,7 +754,15 @@ export default {
 			const methods = [{ methodName: 'getBatchAuctionInfo', args: [this.auction] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime

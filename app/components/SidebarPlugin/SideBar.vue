@@ -359,14 +359,14 @@ export default {
 							name: 'New Sale',
 							path: '/factory/auctions/new',
 						},
-						// {
-						// 	name: 'New List',
-						// 	path: '/factory/points-list',
-						// },
-						// {
-						// 	name: 'New Launcher',
-						// 	path: '/factory/liquidity',
-						// },
+						{
+							name: 'New List',
+							path: '/factory/points-list',
+						},
+						{
+							name: 'New Launcher',
+							path: '/factory/liquidity',
+						},
 						// {
 						// 	name: "New Farm",
 						// 	path: "/factory/farm",

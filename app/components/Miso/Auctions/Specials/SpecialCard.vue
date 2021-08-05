@@ -158,13 +158,32 @@
 					</div>
 				</div>
 			</div>
+			<div
+				v-if="liquidityInfo.liquidityStatus === 2"
+				class="d-flex mt-4 text-uppercase justify-content-center"
+			>
+				<base-button
+					class="btn btn-lp w-100 text-uppercase"
+					@click="goToLiquidityPool($event)"
+				>
+					Go to liquidity pool
+				</base-button>
+			</div>
+			<div
+				v-else-if="liquidityInfo.liquidityStatus === 1"
+				class="d-flex mt-4 justify-content-center"
+			>
+				<span class="text-white text-uppercase font-weight-bold fs-2">
+					{{ cardAdsTxt }}
+				</span>
+			</div>
 		</div>
 	</card>
 </template>
 
 <script>
-import { Card, BaseDivider } from '@/components'
-import { theme } from '@/mixins/theme'
+import { mapGetters } from 'vuex'
+import BigNumber from 'bignumber.js'
 
 import { getContractInstance as misoHelperContract } from '@/services/web3/misoHelper'
 import {
@@ -173,15 +192,13 @@ import {
 } from '@/services/web3/auctions/dutch'
 import { getContractInstance as crowdsaleContract } from '@/services/web3/auctions/crowdsale'
 import { getContractInstance as batchAuctionContract } from '@/services/web3/auctions/batch'
+import { getContractInstance as postAuctionLauncherContract } from '@/services/web3/postAuctionLauncher'
 import { makeBatchCall } from '@/services/web3/base'
-import {
-	toDecimals,
-	toPrecision,
-	to18Decimals,
-	toNDecimals,
-	zeroAddress,
-} from '@/util'
+import { toDecimals, toPrecision, to18Decimals, toNDecimals } from '@/util'
+import { ZERO_ADDRESS, NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 
+import { Card, BaseDivider } from '@/components'
+import { theme } from '@/mixins/theme'
 import CrowdProgress from '~/components/Miso/Auctions/Specials/CrowdProgress'
 import DutchProgress from '~/components/Miso/Auctions/Specials/DutchIndicator'
 import BatchProgress from '~/components/Miso/Auctions/Specials/BatchIndicator '
@@ -234,16 +251,30 @@ export default {
 				endTime: 0,
 				currentPrice: 0,
 				totalTokensCommitted: 0,
-				paymentCurrency: 'ETH',
+				paymentCurrency: {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					name: 'ETHEREUM',
+					symbol: 'ETH',
+					decimals: 18,
+				},
 				hasPointList: false,
 				pointListAddress: '',
 				totalTokens: 0,
 				commitmentsTotal: 0,
+				wallet: '',
 			},
 			tokenInfo: {
 				address: '',
 				name: '',
 				symbol: '',
+			},
+			liquidityInfo: {
+				liquidityStatus: 0,
+				liquidityTemplate: null,
+				launcherInfo: null,
+				lpTokenAddress: null,
+				lpTokenBalance: 0,
+				isAdmin: false,
 			},
 			contractInstance: null,
 			loading: true,
@@ -256,6 +287,10 @@ export default {
 		}
 	},
 	computed: {
+		...mapGetters({
+			nativeCurrency: 'ethereum/nativeCurrency',
+			coinbase: 'ethereum/coinbase',
+		}),
 		seconds: () => 1000,
 		minutes() {
 			return this.seconds * 60
@@ -298,7 +333,7 @@ export default {
 		isPrivate() {
 			return (
 				this.marketInfo.hasPointList &&
-				this.marketInfo.pointListAddress !== zeroAddress
+				this.marketInfo.pointListAddress !== ZERO_ADDRESS
 			)
 		},
 		sliderMax() {
@@ -348,6 +383,16 @@ export default {
 				return this.iconLink
 			}
 			return require('static/s3/img/token_placeholder.png')
+		},
+		cardAdsTxt() {
+			return (
+				this.liquidityInfo.launcherInfo.liquidityPercent / 100 +
+				'% of the raise will be sent to ' +
+				this.tokenInfo.symbol +
+				'-' +
+				this.marketInfo.paymentCurrency.symbol +
+				' LIQUIDITY POOL'
+			)
 		},
 	},
 	async mounted() {
@@ -453,7 +498,15 @@ export default {
 			const methods = [{ methodName: 'getDutchAuctionInfo', args: [this.auction] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
@@ -496,7 +549,7 @@ export default {
 				),
 				totalTokens: to18Decimals(this.marketInfo.totalTokens),
 				commitmentsTotal: toNDecimals(
-					this.commitmentsTotal,
+					this.marketInfo.commitmentsTotal,
 					this.marketInfo.paymentCurrency.decimals
 				),
 			}
@@ -514,7 +567,15 @@ export default {
 			const methods = [{ methodName: 'getCrowdsaleInfo', args: [this.auction] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
@@ -549,7 +610,15 @@ export default {
 			const methods = [{ methodName: 'getBatchAuctionInfo', args: [this.auction] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
@@ -574,19 +643,89 @@ export default {
 			)
 		},
 
+		// Get Auction Template & Liquidity
 		async getTemplateId() {
-			const methods = [{ methodName: 'marketTemplate' }]
-			const [marketTemplate] = await makeBatchCall(
+			const methods = [{ methodName: 'marketTemplate' }, { methodName: 'wallet' }]
+			const [marketTemplate, wallet] = await makeBatchCall(
 				dutchAuctionContract(this.auction),
 				methods
 			)
 			this.marketTemplateId = marketTemplate
+			this.marketInfo.wallet = wallet
+
+			// Get Liquidity Template
+			try {
+				const liquidityMethods = [
+					{ methodName: 'liquidityTemplate' },
+					{ methodName: 'launcherInfo' },
+					{ methodName: 'getLPTokenAddress' },
+					{ methodName: 'hasAdminRole', args: [this.coinbase] },
+				]
+				const [liquidityTemplate, launcherInfo, lpTokenAddress, isAdmin] =
+					await makeBatchCall(postAuctionLauncherContract(wallet), liquidityMethods)
+
+				this.liquidityInfo.liquidityTemplate = Number(liquidityTemplate)
+				this.liquidityInfo.launcherInfo = launcherInfo
+				this.liquidityInfo.lpTokenAddress = lpTokenAddress
+				this.liquidityInfo.isAdmin = isAdmin
+
+				// Get LP Balance
+				try {
+					const method = [
+						{
+							methodName: 'getLPBalance',
+						},
+					]
+					const [lpTokenBalance] = await makeBatchCall(
+						postAuctionLauncherContract(wallet),
+						method
+					)
+					this.liquidityInfo.lpTokenBalance = lpTokenBalance
+				} catch (error) {
+					this.liquidityInfo.lpTokenBalance = 0
+				}
+
+				// Check the Liquidity Status
+				if (launcherInfo.launched) {
+					if (BigNumber(this.liquidityInfo.lpTokenBalance).isGreaterThan(0)) {
+						this.liquidityInfo.liquidityStatus = 2 // Launcher is successfully finalized
+					} else {
+						this.liquidityInfo.liquidityStatus = -1 // Launcher is cancelled
+					}
+				} else {
+					this.liquidityInfo.liquidityStatus = 1 // Launcher is not finalized yet
+				}
+			} catch (error) {
+				this.liquidityInfo.liquidityStatus = 0 // No Launcher
+				this.liquidityInfo.liquidityTemplate = null
+				this.liquidityInfo.lpTokenAddress = null
+				this.liquidityInfo.lpTokenBalance = 0
+				this.liquidityInfo.launcherInfo = null
+				this.liquidityInfo.isAdmin = false
+			}
 		},
 
 		setTokenInfo(tokenInfo) {
 			this.tokenInfo = tokenInfo
 			this.about.title = `${tokenInfo.name} (${tokenInfo.symbol})`
 			this.about.tokenPair = `${tokenInfo.symbol}/${this.marketInfo.paymentCurrency.symbol}`
+		},
+
+		goToLiquidityPool(event) {
+			if (event) {
+				event.preventDefault()
+			}
+
+			window
+				.open(
+					`https://app.sushi.com/add/${
+						this.marketInfo.paymentCurrency.addr === NATIVE_CURRENCY_ADDRESS
+							? 'ETH'
+							: this.marketInfo.paymentCurrency.addr
+					}/${this.tokenInfo.addr}`,
+					'_blank'
+				)
+				.focus()
 		},
 	},
 }
@@ -657,5 +796,10 @@ export default {
 }
 .ingredients {
 	font-size: 10px;
+}
+</style>
+<style>
+.btn-lp {
+	background: linear-gradient(122.56deg, #f05240 1.52%, #ba23ab 68.03%) !important;
 }
 </style>

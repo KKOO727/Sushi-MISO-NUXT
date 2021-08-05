@@ -6,6 +6,7 @@
 					:info="about"
 					:market-info="marketInfo"
 					:token-info="tokenInfo"
+					:liquidity-info="liquidityInfo"
 					:user="userInfo"
 					:price="marketInfo.currentPrice"
 					:type="status.type"
@@ -17,6 +18,7 @@
 					:status="status"
 					:market-info="marketInfo"
 					:token-info="tokenInfo"
+					:liquidity-info="liquidityInfo"
 					:user-info="userInfo"
 					@updateUserInfo="updateUserInfo"
 					@auctionFinalized="finalizeAuction"
@@ -40,6 +42,8 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex'
+import BigNumber from 'bignumber.js'
+
 import { getContractInstance as misoHelperContract } from '@/services/web3/misoHelper'
 import { clearingPrice } from '@/services/web3/auctions/dutch'
 import { getContractInstance as getAuctionContract } from '@/services/web3/auctions/auction'
@@ -49,6 +53,7 @@ import { toDecimals, toPrecision, to18Decimals, toNDecimals } from '@/util/index
 import AboutCard from '@/components/Miso/Auctions/AuctionInfo/AboutCard'
 import LiveStatus from '@/components/Miso/Auctions/AuctionInfo/LiveStatus'
 import Commitments from '@/components/Miso/Auctions/Commitments'
+import { NATIVE_CURRENCY_ADDRESS } from '~/constants/networks'
 
 const TOPIC_ADDED_COMMITMENT =
 	'0x077511a636ba1f10551cc7b89c13ff66a6ac9344e8a917527817a9690b15af7a'
@@ -106,16 +111,20 @@ export default {
 				totalTokens: 0,
 				commitmentsTotal: 0,
 				wallet: '',
-				liquidity: {
-					liquidityTemplate: null,
-					lpTokenAddress: null,
-				},
 				finalized: 0,
 			},
 			tokenInfo: {
 				address: '',
 				name: '',
 				symbol: '',
+			},
+			liquidityInfo: {
+				liquidityStatus: 0,
+				liquidityTemplate: null,
+				launcherInfo: null,
+				lpTokenAddress: null,
+				lpTokenBalance: 0,
+				isAdmin: false,
 			},
 			userInfo: {
 				commitments: 0,
@@ -134,6 +143,7 @@ export default {
 			coinbase: 'ethereum/coinbase',
 			commitmentsTotal: 'commitments/commitmentsTotal',
 			listCommitments: 'commitments/list',
+			nativeCurrency: 'ethereum/nativeCurrency',
 		}),
 	},
 	watch: {
@@ -240,7 +250,15 @@ export default {
 			]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
@@ -278,7 +296,15 @@ export default {
 			]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
@@ -302,7 +328,7 @@ export default {
 
 			this.status.auctionSuccessful = data.auctionSuccessful
 			this.status.totalTokens = toDecimals(data.totalTokens)
-			this.marketInfo.currentPrice = toPrecision(1 / this.marketInfo.rate, 2)
+			this.marketInfo.currentPrice = toPrecision(this.marketInfo.rate, 5)
 			this.updateCrowdsaleData()
 		},
 
@@ -312,7 +338,15 @@ export default {
 			]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
@@ -367,7 +401,7 @@ export default {
 		},
 
 		updateCrowdsaleData() {
-			const tokensCommitted = this.marketInfo.commitmentsTotal * this.marketInfo.rate
+			const tokensCommitted = this.marketInfo.commitmentsTotal / this.marketInfo.rate
 			this.marketInfo.totalTokensCommitted = toPrecision(tokensCommitted, 3)
 		},
 
@@ -392,6 +426,7 @@ export default {
 			this.userInfo.isAdmin = userInfo.isAdmin
 		},
 
+		// Get Auction Template & Liquidity
 		async getTemplateId() {
 			const methods = [{ methodName: 'marketTemplate' }, { methodName: 'wallet' }]
 			const [marketTemplate, wallet] = await makeBatchCall(
@@ -402,25 +437,62 @@ export default {
 			this.marketInfo.wallet = wallet
 
 			// Get Liquidity Template
-			const method = [
-				{ methodName: 'liquidityTemplate' },
-				{ methodName: 'getLPTokenAddress' },
-			]
 			try {
-				const [liquidityTemplate, lpTokenAddress] = await makeBatchCall(
-					postAuctionLauncherContract(wallet),
-					method
-				)
-				this.marketInfo.liquidity.liquidityTemplate = Number(liquidityTemplate)
-				this.marketInfo.liquidity.lpTokenAddress = lpTokenAddress
+				const liquidityMethods = [
+					{ methodName: 'liquidityTemplate' },
+					{ methodName: 'launcherInfo' },
+					{ methodName: 'getLPTokenAddress' },
+					{ methodName: 'hasAdminRole', args: [this.coinbase] },
+				]
+				const [liquidityTemplate, launcherInfo, lpTokenAddress, isAdmin] =
+					await makeBatchCall(postAuctionLauncherContract(wallet), liquidityMethods)
+
+				this.liquidityInfo.liquidityTemplate = Number(liquidityTemplate)
+				this.liquidityInfo.launcherInfo = launcherInfo
+				this.liquidityInfo.lpTokenAddress = lpTokenAddress
+				this.liquidityInfo.isAdmin = isAdmin
+
+				// Get LP Balance
+				try {
+					const method = [
+						{
+							methodName: 'getLPBalance',
+						},
+					]
+					const [lpTokenBalance] = await makeBatchCall(
+						postAuctionLauncherContract(wallet),
+						method
+					)
+					this.liquidityInfo.lpTokenBalance = toDecimals(lpTokenBalance)
+				} catch (error) {
+					this.liquidityInfo.lpTokenBalance = 0
+				}
+
+				// Check the Liquidity Status
+				if (launcherInfo.launched) {
+					if (BigNumber(this.liquidityInfo.lpTokenBalance).isGreaterThan(0)) {
+						this.liquidityInfo.liquidityStatus = 2 // Launcher is successfully finalized
+					} else {
+						this.liquidityInfo.liquidityStatus = -1 // Launcher is cancelled
+					}
+				} else {
+					this.liquidityInfo.liquidityStatus = 1 // Launcher is not finalized yet
+				}
 			} catch (error) {
-				this.marketInfo.liquidity.liquidityTemplate = null
-				this.marketInfo.liquidity.lpTokenAddress = null
+				this.liquidityInfo.liquidityStatus = 0 // No Launcher
+				this.liquidityInfo.liquidityTemplate = null
+				this.liquidityInfo.lpTokenAddress = null
+				this.liquidityInfo.lpTokenBalance = 0
+				this.liquidityInfo.launcherInfo = null
+				this.liquidityInfo.isAdmin = false
 			}
 		},
 
 		finalizeAuction() {
 			this.marketInfo.finalized = true
+			if (this.liquidityInfo.liquidityStatus === 1) {
+				this.liquidityInfo.liquidityStatus = 2
+			}
 		},
 
 		setTokenInfo(tokenInfo) {

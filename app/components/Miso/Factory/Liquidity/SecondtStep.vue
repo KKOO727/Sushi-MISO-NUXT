@@ -26,18 +26,23 @@
 						"
 					>
 						<div
-							v-if="data.auction.payment_currency === 'ETH'"
+							v-if="data.auction.payment_currency === nativeCurrency.symbol"
 							class="d-flex align-items-center pl-3"
 							style="cursor: not-allowed"
 						>
 							<base-radio
 								v-model="model.auction.payment_currency"
-								name="ETH"
+								:name="nativeCurrency.symbol"
 								class="text-white font-weight-bold fs-4 mr-3 mb-2"
 							>
-								ETHEREUM
+								{{ nativeCurrency.name }}
 							</base-radio>
-							<svg-icon icon="ethereum" height="30" width="30" />
+							<svg-icon
+								v-if="data.auction.payment_currency == 'ETH'"
+								icon="ethereum"
+								height="30"
+								width="30"
+							/>
 						</div>
 						<div
 							v-else-if="data.auction.payment_currency === 'DAI'"
@@ -272,6 +277,12 @@ export default {
 		}
 	},
 	computed: {
+		...mapGetters({
+			nativeCurrency: 'ethereum/nativeCurrency',
+			coinbase: 'ethereum/coinbase',
+			tokens: 'tokens/list',
+			currentProvidersNetworkId: 'ethereum/currentProvidersNetworkId',
+		}),
 		model() {
 			return this.data
 		},
@@ -342,15 +353,10 @@ export default {
 				this.updateTokenAmount(val)
 			},
 		},
-		...mapGetters({
-			coinbase: 'ethereum/coinbase',
-			tokens: 'tokens/list',
-			currentProvidersNetworkId: 'ethereum/currentProvidersNetworkId',
-		}),
 	},
 	watch: {
 		customType(val) {
-			const typeChecks = ['USD', 'ETH', 'DAI', 'USDT']
+			const typeChecks = ['USD', this.nativeCurrency.symbol, 'DAI', 'USDT']
 			typeChecks.forEach((el) => {
 				if (el !== this.customType) {
 					this.model.type = val
@@ -374,7 +380,7 @@ export default {
 	},
 	created() {
 		console.log(this.data)
-		const typeChecks = ['USD', 'ETH', 'DAI', 'USDT']
+		const typeChecks = ['USD', this.nativeCurrency.symbol, 'DAI', 'USDT']
 		if (this.data) {
 			Object.assign(this.model, this.data)
 			typeChecks.forEach((el) => {

@@ -1,7 +1,8 @@
 <template>
 	<card class="pt-2 pb-4 mb-1 h-100 about-project">
-		<div class="d-flex flex-column">
+		<div ref="card" class="d-flex flex-column">
 			<div
+				v-if="cardWidth > 550"
 				class="
 					d-flex
 					flex-column flex-sm-row
@@ -131,6 +132,144 @@
 				</div>
 			</div>
 
+			<div v-else>
+				<div class="d-flex align-items-center">
+					<div class="token-img mr-2">
+						<img :src="computedTokenImg" class="img-fluid" />
+					</div>
+					<div class="d-flex flex-column" :class="{ 'pl-4': checkImage }">
+						<div class="d-flex align-items-center">
+							<h4 class="card-title font-weight-bold text-capitalize fs-5 mb-1">
+								{{ textCheck(title, 'title') }}
+							</h4>
+						</div>
+						<span
+							v-if="status.auction !== 'upcoming' && status.auction !== 'finished'"
+							class="
+								fs-3
+								font-weight-bold
+								text-capitalize text-white
+								d-flex
+								align-items-center
+								justify-center
+							"
+						>
+							<span
+								class="radius-full token-price-status-indicator mr-2"
+								:class="computedStatusColor"
+							></span>
+							{{ status.auction }}
+
+							<div
+								v-if="isPrivate"
+								class="
+									d-flex
+									special_status
+									px-3
+									mr-2
+									text-white
+									font-weight-bold
+									border-danger
+								"
+							>
+								<img src="@/assets/svg/private.svg" class="mr-2 mb-0" />
+								Private
+							</div>
+						</span>
+						<span
+							v-if="status.auction === 'upcoming' || status.auction === 'finished'"
+							class="
+								fs-3
+								font-weight-bold
+								text-capitalize text-white
+								d-flex
+								align-items-center
+								justify-center
+							"
+						>
+							<span
+								class="radius-full token-price-status-indicator mr-2"
+								:class="computedStatusColor"
+							></span>
+							{{ status.auction }}
+
+							<div
+								v-if="isPrivate"
+								class="
+									d-flex
+									special_status
+									px-3
+									mr-2
+									text-white
+									font-weight-bold
+									border-danger
+								"
+							>
+								<img src="@/assets/svg/private.svg" class="mr-2 mb-0" />
+								Private
+							</div>
+						</span>
+
+						<p
+							class="
+								font-weight-bold
+								text-uppercase
+								fs-1
+								d-flex
+								align-items-center
+								pt-2
+							"
+						>
+							<span
+								class="radius-full token-price-status-indicator mr-2"
+								:class="tokenPriceStatusColor"
+							></span>
+							<span class="mr-2">{{ tokenPriceTitle }}</span>
+							<span class="text-white">{{ tokenPrice }}</span>
+						</p>
+					</div>
+				</div>
+
+				<div class="align-items-center justify-content-center row pt-3">
+					<div
+						v-if="status.auction !== 'upcoming' && status.auction !== 'finished'"
+						class="d-flex flex-column duration mt-sm-0 mt-3"
+					>
+						<div class="bg-primary radius-md">
+							<div class="d-flex justify-content-around text-white">
+								<div class="d-flex flex-column align-items-center text-uppercase">
+									<span class="fs-2 font-weight-bold">
+										{{ displayDays }}
+									</span>
+									<span class="abbr">days</span>
+								</div>
+								&nbsp;:&nbsp;
+								<div class="d-flex flex-column align-items-center text-uppercase">
+									<span class="fs-2 font-weight-bold">
+										{{ displayHours }}
+									</span>
+									<span class="abbr">hrs</span>
+								</div>
+								&nbsp;:&nbsp;
+								<div class="d-flex flex-column align-items-center text-uppercase">
+									<span class="fs-2 font-weight-bold">
+										{{ displayMinutes }}
+									</span>
+									<span class="abbr">min</span>
+								</div>
+								&nbsp;:&nbsp;
+								<div class="d-flex flex-column align-items-center text-uppercase">
+									<span class="fs-2 font-weight-bold">
+										{{ displaySeconds }}
+									</span>
+									<span class="abbr">Sec</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
 			<base-divider class="mb-4 mt-2 py-1" />
 			<div class="pt-2">
 				<!-- Auction Contract -->
@@ -189,30 +328,77 @@
 					</div>
 				</div>
 
-				<!-- LPToken Contract -->
-				<div v-if="marketInfo.liquidity.lpTokenAddress" class="pt-3 mt-1 pr-5">
-					<h5 class="fs-1 font-weight-bold text-uppercase mb-0">LPTOKEN:</h5>
-					<div class="d-flex align-items-center">
-						<a
-							class="font-weight-bold text-white text-uppercase fs-3 mb-0"
-							:href="`https://analytics.sushi.com/pairs/${marketInfo.liquidity.lpTokenAddress}`"
-							target="blank"
+				<!-- Liquidity pool -->
+				<div class="pt-3 mt-1 pr-5">
+					<h5 class="fs-1 font-weight-bold text-uppercase mb-0">
+						{{ liquidityPoolLabel }}
+					</h5>
+					<div class="d-flex align-items-center justify-content-between">
+						<!-- Launcher Set !-->
+						<div
+							v-if="liquidityInfo.liquidityStatus > 0"
+							class="d-flex align-items-center"
 						>
-							{{ marketInfo.liquidity.lpTokenAddress | truncate(6) }}
-						</a>
-						<div class="copy-box d-flex align-items-center ml-2">
-							<div class="copy-box_icon">
-								<svg-icon
-									class="cursor-pointer"
-									icon="copy"
-									height="20"
-									width="20"
-									color="#F46E41"
-									:fill="false"
-									@click="copyToClipboard(marketInfo.liquidity.lpTokenAddress)"
-								/>
+							<a
+								class="font-weight-bold text-white text-uppercase fs-3 mb-0"
+								:href="
+									liquidityInfo.liquidityStatus === 2
+										? `https://analytics.sushi.com/pairs/${liquidityInfo.lpTokenAddress}`
+										: `${explorer.root}${explorer.address}${liquidityInfo.lpTokenAddress}`
+								"
+								target="blank"
+							>
+								{{ liquidityInfo.lpTokenAddress | truncate(6) }}
+							</a>
+							<div class="copy-box d-flex align-items-center ml-2">
+								<div class="copy-box_icon">
+									<svg-icon
+										class="cursor-pointer"
+										icon="copy"
+										height="20"
+										width="20"
+										color="#F46E41"
+										:fill="false"
+										@click="copyToClipboard(liquidityInfo.lpTokenAddress)"
+									/>
+								</div>
+								<span class="font-weight-bolder text-white fs-2 pl-1">copy</span>
 							</div>
-							<span class="font-weight-bolder text-white fs-2 pl-1">copy</span>
+						</div>
+						<!-- Launcher Not Set !-->
+						<span
+							v-else-if="
+								liquidityInfo.liquidityStatus === 0 || !liquidityInfo.isAdmin
+							"
+							class="font-weight-bold text-white text-uppercase fs-3 mb-0"
+						>
+							Nothing has been set up yet.
+						</span>
+						<!-- Launcher Cancelled !-->
+						<span v-else class="font-weight-bold text-white text-uppercase fs-3 mb-0">
+							It's cancelled.
+						</span>
+						<!-- Edit Liquidity Pool !-->
+						<div
+							v-if="liquidityInfo.isAdmin && liquidityInfo.liquidityStatus !== 0"
+							class="d-flex align-items-center ml-2"
+						>
+							<nuxt-link :to="`/launcher-admin/${marketInfo.wallet}`">
+								Edit Liquidity Pool
+							</nuxt-link>
+						</div>
+						<!-- Set Up Liquidity Pool !-->
+						<div
+							v-else-if="
+								user.isAdmin &&
+								liquidityInfo.liquidityStatus === 0 &&
+								!marketInfo.finalized
+							"
+							class="d-flex align-items-center ml-2"
+						>
+							<nuxt-link :to="`/factory/liquidity?auction=${auctionAddress}`">
+								Set Up Liquidity Pool
+							</nuxt-link>
 						</div>
 					</div>
 				</div>
@@ -255,10 +441,6 @@
 					</div>
 				</div>
 			</div>
-			<div v-if="user.isAdmin" class="pt-4 pr-5">
-				<!-- <h5 class="fs-1 mb-1 font-weight-bold text-uppercase">admin:</h5> -->
-				<nuxt-link :to="`/auction-admin/${auctionAddress}`">Edit</nuxt-link>
-			</div>
 			<div v-if="info.description" class="pt-4 pr-5">
 				<h5 class="fs-1 mb-1 font-weight-bold text-uppercase">Description:</h5>
 				<p class="fs-2">
@@ -268,7 +450,14 @@
 			</div>
 			<base-divider v-if="!info.description" class="my-4 py-2" />
 			<div v-if="info.icons.ingredient.length" class="pt-4 pr-5">
-				<h5 class="fs-1 font-weight-bold text-uppercase">Auction Type:</h5>
+				<div class="d-flex align-items-center justify-content-between">
+					<h5 class="fs-1 font-weight-bold text-uppercase">Auction Type:</h5>
+					<div v-if="user.isAdmin">
+						<nuxt-link class="text-right" :to="`/auction-admin/${auctionAddress}`">
+							Edit Auction
+						</nuxt-link>
+					</div>
+				</div>
 				<div class="d-flex align-items-center">
 					<span class="mr-3">
 						<svg-icon
@@ -294,9 +483,10 @@
 import { Card, BaseDivider } from '@/components'
 // import { Popover } from "element-ui"
 import { theme } from '@/mixins/theme'
-import { divNumbers, toPrecision, zeroAddress } from '@/util'
+import { divNumbers, toPrecision } from '@/util'
 import BigNumber from 'bignumber.js'
 import { mapGetters } from 'vuex'
+import { ZERO_ADDRESS } from '@/constants/networks'
 
 export default {
 	components: {
@@ -327,6 +517,10 @@ export default {
 			type: [Object, Array],
 			required: true,
 		},
+		liquidityInfo: {
+			type: [Object, Array],
+			required: true,
+		},
 		price: {
 			type: [String, Number],
 			required: true,
@@ -340,6 +534,7 @@ export default {
 	},
 	data() {
 		return {
+			cardWidth: 0,
 			displaySeconds: '00',
 			displayMinutes: '00',
 			displayHours: '00',
@@ -396,7 +591,7 @@ export default {
 		isPrivate() {
 			return (
 				this.marketInfo.hasPointList &&
-				this.marketInfo.pointListAddress !== zeroAddress
+				this.marketInfo.pointListAddress !== ZERO_ADDRESS
 			)
 		},
 		auctionType() {
@@ -501,11 +696,29 @@ export default {
 			}
 			return require('static/s3/img/token_placeholder.png')
 		},
+		liquidityPoolLabel() {
+			return (
+				this.tokenInfo.symbol +
+				' - ' +
+				this.marketInfo.paymentCurrency.symbol +
+				' LIQUIDITY POOL:'
+			)
+		},
 	},
 	mounted() {
 		this.showCountDown()
+		this.onResize()
+		window.onresize = () => {
+			this.onResize()
+		}
+	},
+	beforeDestroy() {
+		window.removeEventListener('resize', this.onResize)
 	},
 	methods: {
+		onResize() {
+			this.cardWidth = this.$refs.card.offsetWidth
+		},
 		// copy data to clipboard on click & display message
 		copyToClipboard(value) {
 			navigator.clipboard.writeText(value).then(() => {

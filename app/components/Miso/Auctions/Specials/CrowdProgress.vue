@@ -207,7 +207,7 @@ export default {
 			}
 		},
 		salePrice() {
-			return `${toPrecision(1 / this.marketInfo.rate, 5)} 
+			return `${toPrecision(this.marketInfo.rate, 5)} 
 				${this.textCheck(this.marketInfo.paymentCurrency.symbol)}`
 		},
 		soft() {
