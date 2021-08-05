@@ -400,6 +400,13 @@
     },
     {
       "inputs": [],
+      "name": "cancelLauncher",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "createPool",
       "outputs": [],
       "stateMutability": "nonpayable",

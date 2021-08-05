@@ -178,6 +178,7 @@ import { DatePicker, TimeSelect } from 'element-ui'
 import { getContractInstance as erc20Contract } from '@/services/web3/erc20Token'
 import { makeBatchCall, sendTransactionAndWait } from '@/services/web3/base'
 import { toDecimals, to18Decimals, toDecimalPlaces, multiplyNumbers } from '@/util'
+import { NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 import { duration } from '@/mixins/duration.js'
 import PaymentCurrency from '../PaymentCurrency.vue'
 
@@ -219,10 +220,7 @@ export default {
 			return this.initModel
 		},
 		isETH() {
-			return (
-				this.model.paymentCurrency.address ===
-				'0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
-			)
+			return this.model.paymentCurrency.address === NATIVE_CURRENCY_ADDRESS
 		},
 		paymentType() {
 			return this.isETH ? 'ETH' : 'ERC20'

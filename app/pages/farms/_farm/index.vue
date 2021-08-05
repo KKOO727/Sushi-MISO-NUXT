@@ -7,7 +7,8 @@
 						FARM
 					</h3>
 					<p class="text-center text-white">
-						Stake LP tokens and farm, Zap ETH to get LP tokens and claim rewards
+						Stake LP tokens and farm, Zap {{ nativeCurrency.symbol }} to get LP tokens
+						and claim rewards
 					</p>
 				</div>
 				<div class="col-12 col-md-10 col-lg-10 col-xl-8">
@@ -143,7 +144,7 @@ import { getContractInstance as misoHelperContract } from '@/services/web3/misoH
 import { getContractInstance as masterChefContract } from '@/services/web3/masterChef'
 import { getContractInstance as erc20Contract } from '@/services/web3/erc20Token'
 import { fromWei, toWei } from '@/services/web3/base'
-import { zeroAddress } from '@/util/web3'
+import { ZERO_ADDRESS } from '@/constants/networks'
 import BigNumber from 'bignumber.js'
 import { makeBatchCall, sendTransactionAndWait } from '~/services/web3/base'
 import BaseInput from '~/components/Inputs/BaseInput.vue'
@@ -167,6 +168,7 @@ export default {
 	computed: {
 		...mapGetters({
 			coinbase: 'ethereum/coinbase',
+			nativeCurrency: 'ethereum/nativeCurrency',
 		}),
 	},
 	async mounted() {
@@ -176,7 +178,7 @@ export default {
 		const methods = [
 			{
 				methodName: 'getFarmDetail',
-				args: [this.farmAddress, this.coinbase || zeroAddress],
+				args: [this.farmAddress, this.coinbase || ZERO_ADDRESS],
 			},
 		]
 		const [farmDetail] = await makeBatchCall(misoHelperContract(), methods)

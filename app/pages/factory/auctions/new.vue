@@ -417,6 +417,7 @@ import { makeBatchCall, sendTransactionAndWait } from '@/services/web3/base'
 import { to18Decimals, toNDecimals } from '@/util'
 import { dai } from '@/constants/contracts'
 import { getContractInstance as misoMarketContract } from '@/services/web3/misoMarket'
+import { NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 
 import DutchFirstStep from '@/components/Miso/Auctions/Factories/DutchFactoryForm/DutchFirstStep'
 import DutchSecondStep from '@/components/Miso/Auctions/Factories/DutchFactoryForm/DutchSecondStep.vue'
@@ -468,7 +469,7 @@ export default {
 				},
 				chosenAuctionType: 2,
 				paymentCurrency: {
-					address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+					address: NATIVE_CURRENCY_ADDRESS,
 					name: 'Ethereum',
 					symbol: 'ETH',
 					decimals: 18,
@@ -499,15 +500,15 @@ export default {
 					description:
 						'Great for finding the true market value of a completely novel item',
 				},
-				// {
-				// 	title: 'Crowdsale',
-				// 	id: 1,
-				// 	disabled: false,
-				// 	icon: 'crowdsale',
-				// 	content: 'A fixed price and a fixed set of tokens.',
-				// 	description:
-				// 		'Great when the token price is already known or has been decided on previously',
-				// },
+				{
+					title: 'Crowdsale',
+					id: 1,
+					disabled: false,
+					icon: 'crowdsale',
+					content: 'A fixed price and a fixed set of tokens.',
+					description:
+						'Great when the token price is already known or has been decided on previously',
+				},
 				{
 					title: 'Batch Auction',
 					id: 3,
@@ -678,6 +679,7 @@ export default {
 	computed: {
 		...mapGetters({
 			coinbase: 'ethereum/coinbase',
+			nativeCurrency: 'ethereum/nativeCurrency',
 		}),
 		notificationSteps() {
 			if (this.chosenAuctionType === 2) return this.allSteps
@@ -698,6 +700,9 @@ export default {
 	mounted() {
 		this.breackpoint = this.$screen.breakpoint
 		this.marketFactoryAddress = misoMarketContract().options.address
+		this.model.paymentCurrency.name = this.nativeCurrency.name
+		this.model.paymentCurrency.symbol = this.nativeCurrency.symbol
+		this.model.paymentCurrency.decimals = this.nativeCurrency.decimals
 	},
 	methods: {
 		async deployAuction(ref) {
@@ -802,7 +807,7 @@ export default {
 			const pointList = '0x0000000000000000000000000000000000000000'
 			const operator = this.coinbase
 			const rate = toNDecimals(
-				1 / this.model.tokenPrice,
+				this.model.tokenPrice,
 				this.model.paymentCurrency.decimals
 			)
 			const goal = toNDecimals(

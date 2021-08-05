@@ -340,8 +340,11 @@ import { Step, Steps } from 'element-ui'
 import { mapGetters } from 'vuex'
 import { ValidationObserver } from 'vee-validate'
 import { sendTransaction as createRecipe02 } from '@/services/web3/recipes/recipe02'
+import { NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 import * as _moment from 'moment'
+
 const moment = _moment
+
 export default {
 	name: 'Recipe02',
 	components: {
@@ -360,7 +363,7 @@ export default {
 				accessControl: '0x385fA2EF73433c6A4F4A5aF62700184390a6E232',
 				tokensToMint: 1000000000000000,
 				tokensToMarket: 2000000000000000,
-				paymentCurrency: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+				paymentCurrency: NATIVE_CURRENCY_ADDRESS,
 				startTime: moment().format('YYYY-MM-DD HH:mm'),
 				endTime: moment(this.startTime).add(1, 'days').format('YYYY-MM-DD HH:mm'),
 				marketRate: 100,

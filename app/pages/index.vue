@@ -113,6 +113,7 @@ import { getContractInstance as crowdsaleContract } from '@/services/web3/auctio
 import { getContractInstance as batchAuctionContract } from '@/services/web3/auctions/batch'
 import { makeBatchCall } from '@/services/web3/base'
 import { toDecimals, toPrecision, to18Decimals, toNDecimals } from '@/util/index'
+import { NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 
 export default {
 	name: 'LiveAuctions',
@@ -199,7 +200,12 @@ export default {
 				endTime: 0,
 				currentPrice: 0,
 				totalTokensCommitted: 0,
-				paymentCurrency: 'ETH',
+				paymentCurrency: {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					name: 'ETHEREUM',
+					symbol: 'ETH',
+					decimals: 18,
+				},
 				hasPointList: false,
 				totalTokens: 0,
 				commitmentsTotal: 0,
@@ -224,6 +230,7 @@ export default {
 			coinbase: 'ethereum/coinbase',
 			isRightNetwork: 'ethereum/isRightNetwork',
 			mode: 'theme/getMode',
+			nativeCurrency: 'ethereum/nativeCurrency',
 		}),
 		paneCardBack() {
 			if (this.mode) {
@@ -381,7 +388,15 @@ export default {
 			const methods = [{ methodName: 'getDutchAuctionInfo', args: [auction] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
@@ -441,7 +456,15 @@ export default {
 			const methods = [{ methodName: 'getCrowdsaleInfo', args: [auction] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime
@@ -475,7 +498,15 @@ export default {
 			const methods = [{ methodName: 'getBatchAuctionInfo', args: [auction] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
 			const tokenInfo = data.tokenInfo
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 
 			this.setTokenInfo(tokenInfo)
 			this.marketInfo.startTime = data.startTime

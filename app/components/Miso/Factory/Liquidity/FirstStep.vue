@@ -68,9 +68,10 @@ import { getContractInstance as misoHelperContract } from '@/services/web3/misoH
 import { toDecimals } from '@/util'
 import { getContractInstance as erc20Contract } from '@/services/web3/erc20Token'
 import { misoLauncher as misoLauncherAddress } from '@/constants/contracts'
+import { NATIVE_CURRENCY_ADDRESS } from '@/constants/networks'
 
 export default {
-	name: 'LiqudityStepOne',
+	name: 'LiquidityStepOne',
 	components: {
 		BaseInput,
 	},
@@ -123,6 +124,7 @@ export default {
 			coinbase: 'ethereum/coinbase',
 			tokens: 'tokens/list',
 			currentProvidersNetworkId: 'ethereum/currentProvidersNetworkId',
+			nativeCurrency: 'ethereum/nativeCurrency',
 		}),
 	},
 	watch: {
@@ -169,19 +171,36 @@ export default {
 			Object.assign(this.model, this.data)
 		}
 	},
+	mounted() {
+		if (this.$route.query.auction) {
+			this.auctionAddress = this.$route.query.auction
+		}
+	},
 	methods: {
 		async getTemplateId(val) {
-			const methods = [{ methodName: 'marketTemplate' }]
-			const [marketTemplate] = await makeBatchCall(
-				dutchAuctionContract(val.toLowerCase()),
-				methods
-			)
-			this.marketTemplateId = marketTemplate
+			try {
+				const methods = [{ methodName: 'marketTemplate' }]
+				const [marketTemplate] = await makeBatchCall(
+					dutchAuctionContract(val),
+					methods
+				)
+				this.marketTemplateId = marketTemplate
+			} catch {
+				this.marketTemplateId = 0
+			}
 		},
 		async setDutchAuctionData(val) {
 			const methods = [{ methodName: 'getDutchAuctionInfo', args: [val] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 			this.marketInfo.tokenInfo.addr = data.tokenInfo.addr
 			this.marketInfo.tokenInfo.name = data.tokenInfo.name
 			this.marketInfo.tokenInfo.symbol = data.tokenInfo.symbol
@@ -191,7 +210,15 @@ export default {
 		async setCrowdsaleData(val) {
 			const methods = [{ methodName: 'getCrowdsaleInfo', args: [val] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 			this.marketInfo.tokenInfo.addr = data.tokenInfo.addr
 			this.marketInfo.tokenInfo.name = data.tokenInfo.name
 			this.marketInfo.tokenInfo.symbol = data.tokenInfo.symbol
@@ -201,7 +228,15 @@ export default {
 		async setBatchData(val) {
 			const methods = [{ methodName: 'getBatchAuctionInfo', args: [val] }]
 			const [data] = await makeBatchCall(misoHelperContract(), methods)
-			this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+
+			if (data.paymentCurrencyInfo.addr === NATIVE_CURRENCY_ADDRESS) {
+				this.marketInfo.paymentCurrency = {
+					addr: NATIVE_CURRENCY_ADDRESS,
+					...this.nativeCurrency,
+				}
+			} else {
+				this.marketInfo.paymentCurrency = data.paymentCurrencyInfo
+			}
 			this.marketInfo.tokenInfo.addr = data.tokenInfo.addr
 			this.marketInfo.tokenInfo.name = data.tokenInfo.name
 			this.marketInfo.tokenInfo.symbol = data.tokenInfo.symbol
