@@ -4,7 +4,7 @@ Miso Studio frontend for the MISO smart contracts.
 
 This work is unlicenced and not open sourced. 
 
-gonpachi@protonmail.com
+solaris.botech@gmail.com
 
 ## Build Setup
 
